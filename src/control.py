@@ -15,16 +15,10 @@
 import socket
 class Controller(object):
 	sockt = None
-	hubname = None
-	nick = 'johndoe'
-	passwrd = 'password'
-
+	
 	#
-	#Information that will be provided by hub
-	#
-	nicklist = []
-	oplist = []
-	hubmsg= None
+	# Hub information
+	hubinfo = {}
 
 	#
 	# Method for connecting to a dc hub
@@ -45,8 +39,18 @@ class Controller(object):
 		data = self.sockt.recv(9000)
 		for item in data.split('|'):
 			if (item!=''):
-				if item.startswith('$HubName')
-				elif item.startswith
+				whitespacepos = item.find(' ')
+				self.hubinfo[item[:whitespacepos]] = item[whitespacepos+1:]
+		#		
+		#Checking if hub requires key to be sent
+		#		
+		if (hubinfo['$Lock'].startswith('Sending_key_isn\'t_neccessary,_key_won\'t_be_checked')==False):
+			#Hub requires key
+			#
+			# Key will be computed using the info provided here http://nmdc.sourceforge.net/NMDC.html#_key
+			#
+			
+				
 
 #
 # Utill method for retrieving ip from domain
