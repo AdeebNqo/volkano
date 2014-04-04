@@ -15,7 +15,10 @@
 import socket
 
 class NoConnectedUsersException(Exception):
-	
+	def __init__(self,msg):
+		self.msg = msg
+	def __str__(self):
+		return self.msg
 class Controller(object):
 	sockt = None
 	hubname = None
@@ -36,6 +39,7 @@ class Controller(object):
 	def connect(self,addr):
 		self.sockt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		self.sockt.connect(addr)
+		print('socket has been established!')
 		#executing the steps of the nmdc protocol to connect
 		lock = self.sockt.recv(1024)
 		print('lock response is {}'.format(lock))
@@ -88,10 +92,10 @@ class Controller(object):
 			users = self.sockt.recv(9000)
 			users = users.split('|')
 			if (len(users)<=2):
-				print('no connected users')
+				raise NoConnectedUsersException('Hub is empty.')
 			else:
 				print(users)
 if __name__=='__main__':
 	controller = Controller()
-	addr = ('127.0.0.1',1200)
+	addr = ('sniper.redirectme.net',411)
 	controller.connect(addr)
