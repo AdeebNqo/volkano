@@ -16,3 +16,5 @@ streaming video from dc++
 #Notes
 
 source of subtitles http://imdbpy.sourceforge.net/
+
+themoviedb https://github.com/doganaydin/themoviedb/
