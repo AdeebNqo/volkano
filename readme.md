@@ -1,20 +1,15 @@
 #Volkano
 
-streaming video from (a/nm)dc hub
+Application for streaming videos from a nmdc hub. Does not support the adc protocol.
 
 #TODO
 
-- [ ] Connect to dc hub
+- [ ] Connect to a nmdc hub
 - [ ] Get list of files
 - [ ] Index files in search server
 - [ ] design ui
 - [ ] retrieve metadata
 - [ ] Connect UI and streaming
-
-#Failed
-
-- Scraping the nmdc protocol
-- Using python and not c++
 
 #Notes
 
