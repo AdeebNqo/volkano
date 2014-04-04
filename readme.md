@@ -18,3 +18,5 @@ Currently uses opendchub running on port 1200 for testing
 source of subtitles http://imdbpy.sourceforge.net/
 
 themoviedb https://github.com/doganaydin/themoviedb/
+
+Question on adc handshake http://archive.dcbase.org/dcpp_forums/viewtopic.php?f=6&t=17172
