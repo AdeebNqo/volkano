@@ -12,3 +12,7 @@ streaming video from dc++
 - [ ] design ui
 - [ ] retrieve metadata
 - [ ] Connect UI and streaming
+
+#Notes
+
+source of subtitles http://imdbpy.sourceforge.net/
