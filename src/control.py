@@ -13,12 +13,6 @@
 # Controller for the volkano, the nmdc protocol video stream application
 #
 import socket
-
-class NoConnectedUsersException(Exception):
-	def __init__(self,msg):
-		self.msg = msg
-	def __str__(self):
-		return self.msg
 class Controller(object):
 	sockt = None
 	hubname = None
@@ -47,8 +41,18 @@ class Controller(object):
 			if retries<3:
 				self.connect(host,port+1)
 		print('socket has been established!')
-		
+		#Let hub speak first
+		data = self.sockt.recv(9000)
+		for item in data.split('|'):
+			if (item!=''):
+				if item.startswith('$HubName')
+				elif item.startswith
 
+#
+# Utill method for retrieving ip from domain
+#
+def getip(domain):
+	return socket.gethostbyname_ex(domain)[2][0]
 if __name__=='__main__':
 	controller = Controller()
-	controller.connect(socket.gethostbyname_ex('sniper.redirectme.net')[2][0],411)
+	controller.connect('127.0.0.1',1200)

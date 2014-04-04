@@ -2,6 +2,8 @@
 
 Application for streaming videos from a nmdc hub. Does not support the adc protocol.
 
+Currently uses opendchub running on port 1200 for testing
+
 #TODO
 
 - [ ] Connect to a nmdc hub
