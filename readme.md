@@ -6,7 +6,7 @@ Currently uses opendchub running on port 1200 for testing
 
 #TODO
 
-- [ ] Connect to a nmdc hub
+- [X] Connect to a nmdc hub
 - [ ] Get list of files
 - [ ] Index files in search server
 - [ ] design ui

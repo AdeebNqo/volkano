@@ -109,21 +109,12 @@ class Controller(object):
 						whitespacepos = item.find(' ')
 						self.hubinfo[item[:whitespacepos]] = item[whitespacepos+1:]
 				print(self.hubinfo)
-				print('Now getting file lists...')
-				self.getfiles()
 			except socket.timeout:
 				#
 				# We have to use adc instead of nmdc
 				print('hub does not support nmdc. Defaulting to adc...')
 		else:
 			raise Exception('Connection failed.')
-	#
-	# get files  
-	#
-	def getfiles(self):
-		self.sockt.sendall('$GetNickList|')
-		response = self.sockt.recv(9000)
-		print(response)
 #
 # Utill method for retrieving ip from domain
 #
