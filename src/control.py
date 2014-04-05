@@ -109,12 +109,25 @@ class Controller(object):
 						whitespacepos = item.find(' ')
 						self.hubinfo[item[:whitespacepos]] = item[whitespacepos+1:]
 				print(self.hubinfo)
+				self.cachefiles()
 			except socket.timeout:
 				#
 				# We have to use adc instead of nmdc
-				print('hub does not support nmdc. Defaulting to adc...')
+				print('hub does not support nmdc. Defaulting to adc...\n adc currently not supported yet.')
 		else:
 			raise Exception('Connection failed.')
+	#
+	# Method for caching files
+	def cachefiles(self):
+		self.sockt.sendall('$GetNickList|')
+		data = '';
+		while True:
+			response = self.sockt.recv(1024)
+			data = data+response
+			if not data:
+				break
+		print(data)
+	
 #
 # Utill method for retrieving ip from domain
 #
