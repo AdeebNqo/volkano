@@ -13,12 +13,18 @@
 # Controller for the volkano, the nmdc protocol video stream application
 #
 import socket
+
 class Controller(object):
 	sockt = None
 	
 	#
 	# Hub information
 	hubinfo = {}
+
+	def xor(self,s1,s2):
+		return ''.join(chr(ord(a) ^ ord(b)) for a,b in zip(s1,s2))
+	def xor(self,s1,num1):
+		return ''.join(chr(ord(s1) ^ num1))
 
 	#
 	# Method for connecting to a dc hub
@@ -44,11 +50,24 @@ class Controller(object):
 		#		
 		#Checking if hub requires key to be sent
 		#		
-		if (hubinfo['$Lock'].startswith('Sending_key_isn\'t_neccessary,_key_won\'t_be_checked')==False):
+		if (self.hubinfo['$Lock'].startswith('ending_key_isn\'t_neccessary,_key_won\'t_be_checked')==False):
 			#Hub requires key
 			#
 			# Key will be computed using the info provided here http://nmdc.sourceforge.net/NMDC.html#_key
 			#
+			lockval = self.hubinfo['$Lock']
+			dot = lockval.find('.')
+			if (True if dot==-1 else False):
+				lock = lockval[lockval.find('$Lock')+1:]
+			else:
+				lock = lockval[lockval.find('$Lock')+1:dot]
+			lenlock = len(lock)
+			key = self.xor(self.xor(self.xor(lock[0],lock[lenlock-1]),lock[lenlock-2]), 5)
+			for i in range(1,lenlock):
+				key = key+(lock[i] ^ lock[i-1])
+			for i in range(len(key)):
+				key[i] = ((key[i]<<4) & 240) | ((key[i]>>4) & 15)
+			
 			
 				
 
