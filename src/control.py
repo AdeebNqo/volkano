@@ -52,7 +52,6 @@ class Controller(object):
 			try:
 				#Let hub speak first
 				data = self.sockt.recv(9000)
-				print('data is {}'.format(data))
 				for item in data.split('|'):
 					if (item!=''):
 						whitespacepos = item.find(' ')
@@ -74,21 +73,24 @@ class Controller(object):
 						lock = lockval[lockval.find('$Lock')+1:dot]
 					print('actual lock val is {}'.format(lock))
 					lenlock = len(lock)
-					key = chr(ord(lock[0]) ^ ord(lock[lenlock-1]) ^ ord(lock[lenlock-2]) ^ 5)
-					print('first letter of key {}'.format(key))
+					lock = bytearray(lock)
+					print('lock is {0}, length:{1}'.format(lock,lenlock))
+					key = chr(lock[0] ^ lock[lenlock-1] ^ lock[lenlock-2] ^ 5)
 					for i in range(1,lenlock):
-						key = key+chr(ord(lock[i]) ^ ord(lock[i-1]))
-					print('key before bit shifting {}'.format(key))
-					finalkey = ''			
+						key = key+chr(lock[i] ^ lock[i-1])		
+					finkey = ''
 					for i in range(len(key)):
-						finalkey = finalkey+chr(((ord(key[i])<<4) & 240) | ((ord(key[i])>>4) & 15))
-					print('key is {}'.format(finalkey))
-					self.sockt.sendall('$Key {}|'.format(finalkey))
+						finkey=finkey+chr(((ord(key[i]) & 0x0F) << 4) | ((ord(key[i]) & 0xF0) >> 4))
+					print('key is {0}, length:{1}'.format(finkey,len(finkey)))
+					self.sockt.sendall('$Key {}|'.format(finkey))
 				self.sockt.sendall('$ValidateNick {}|'.format(self.nick))
 				#
 				#Getting response from hub
-				response = self.sockt.recv(9000)
-				print('hub responded with {} after sending validatenick'.format(response))
+				self.sockt.setblocking(1)
+				while True:
+					response = self.sockt.recv(1024)
+					if ((not response)==False):
+						break
 				for item in response.split('|'):
 					if (item!=''):
 						whitespacepos = item.find(' ')
@@ -97,9 +99,10 @@ class Controller(object):
 					#
 					# if the hub requires authentication
 					self.sockt.sendall('$MyPass {}|'.format(self.password))
+				print('hubinfo is {}'.format(self.hubinfo))
 				#Gained access to the hub
 				self.sockt.sendall('$Version 1,0091|')
-				self.sockt.sendall('$MyINFO {0} {1}$ $33.6kbps1${2}$5000$|'.format(self.nick,self.description,self.email))
+				self.sockt.sendall('$MyINFO $ALL {0} <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31${1}$1234$|'.format(self.nick,self.email))
 				response = self.sockt.recv(9000)
 				for item in response.split('|'):
 					if (item!=''):
