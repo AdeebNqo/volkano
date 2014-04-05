@@ -117,22 +117,71 @@ class Controller(object):
 		else:
 			raise Exception('Connection failed.')
 	#
-	# Method for caching files
-	def cachefiles(self):
-		self.sockt.sendall('$GetNickList|')
+	#Method for receiving data from hub
+	def recv(self):
 		data = '';
 		while True:
-			response = self.sockt.recv(1024)
-			data = data+response
-			if not data:
+			try:
+				response = self.sockt.recv(1024)
+				print('response is {}'.format(response))
+				data = data+response
+				if not response:
+					break
+			except socket.timeout:
 				break
-		print(data)
+		return data
+	#
+	#Method for receiving data from specific socket
+	def recv2(self,socket):
+		socket.settimeout(30)
+		data = '';
+		while True:
+			try:
+				response = socket.recv(1024)
+				print('response is {}'.format(response))
+				data = data+response
+				if not response:
+					break
+			except timeout:
+				break
+		return data
+	#
+	# Method for caching files
+	def cachefiles(self):
+		self.sockt.settimeout(50)
+		self.sockt.sendall('$GetNickList|')
+		data = self.recv()
+		data = data.split('|')
+		for item in data:
+			if item.startswith('$NickList'):
+				#getting all video files from the logged in users
+				users = item.replace('$NickList ','').split('$$')
+				for user in users:
+					if (user!='' or user!=self.nick):
+						#
+						#get file list of user and index it
+						self.sockt.sendall('$RevConnectToMe {0} {1}|'.format(self.nick,user))
+						response = self.recv()
+						for item in response.split('|'):
+							if item.startswith('$Search'):
+								vals = item.split(' ')
+								ipport = vals[1].split(':')
+								ip = ipport[0]
+								port = ipport[1]
+								searchstring = vals[2]
+								#
+								#handling 'other client'
+								#
+								s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+								s.connect((ip,int(port)))
+								response = self.recv2(s)
+								print('client/server response is {}'.format(response))
 	
 #
-# Utill method for retrieving ip from domain
+# Util method for retrieving ip from domain
 #
 def getip(domain):
 	return socket.gethostbyname_ex(domain)[2][0]
 if __name__=='__main__':
 	controller = Controller()
-	controller.connect('127.0.0.1',411)
+	controller.connect('127.0.0.1',1200)
