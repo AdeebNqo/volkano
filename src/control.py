@@ -27,6 +27,38 @@ class Controller(object):
 	description = 'here lies dragons'
 	email = 'sumarai@testword.ru'
 
+	#
+	#Method for receiving data from hub
+	def recv(self):
+		data = ''
+		while True:
+			try:
+				response = self.sockt.recv(1024)
+				print('response is {}'.format(response))
+				data = data+response
+				if not response:
+					break
+			except socket.timeout:
+				break
+		return data
+	#
+	#Method for receiving data from specific socket
+	def recv2(self,socket):
+		socket.settimeout(30)
+		data = '';
+		while True:
+			try:
+				response = socket.recv(1024)
+				print('response is {}'.format(response))
+				data = data+response
+				if not response:
+					break
+			except timeout:
+				break
+		return data
+	
+	#
+	# The following methods apply the xor function for strings
 	def xor(self,s1,s2):
 		return ''.join(chr(ord(a) ^ ord(b)) for a,b in zip(s1,s2))
 	def xor(self,s1,num1):
@@ -41,7 +73,8 @@ class Controller(object):
 		try:
 			print('trying to connect...')
 			self.sockt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			self.sockt.settimeout(60)
+			self.sockt.setblocking(1)
+			self.sockt.settimeout(40)
 			self.sockt.connect((host,port))
 		except (socket.timeout,socket.error) as err:
 			self.retries = self.retries+1
@@ -84,13 +117,11 @@ class Controller(object):
 					print('key is {0}, length:{1}'.format(finkey,len(finkey)))
 					self.sockt.sendall('$Key {}|'.format(finkey))
 				self.sockt.sendall('$ValidateNick {}|'.format(self.nick))
+				print('done sending nick and key to hub...')
 				#
 				#Getting response from hub
-				self.sockt.setblocking(1)
-				while True:
-					response = self.sockt.recv(1024)
-					if ((not response)==False):
-						break
+				response = self.recv()
+				print('responded with {} after nick and key'.format(response))
 				for item in response.split('|'):
 					if (item!=''):
 						whitespacepos = item.find(' ')
@@ -99,11 +130,15 @@ class Controller(object):
 					#
 					# if the hub requires authentication
 					self.sockt.sendall('$MyPass {}|'.format(self.password))
+				print('sent password if neccessary')
 				print('hubinfo is {}'.format(self.hubinfo))
+				print('sending vers and myinfo...')
+				print('$MyINFO $ALL {0} <StreamDC++ V:2.42,M:A,H:2/0/0,S:32>$ $LAN(T3)0x31${1}$1234$|'.format(self.nick,self.email))
 				#Gained access to the hub
 				self.sockt.sendall('$Version 1,0091|')
-				self.sockt.sendall('$MyINFO $ALL {0} <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31${1}$1234$|'.format(self.nick,self.email))
-				response = self.sockt.recv(9000)
+				self.sockt.sendall('$MyINFO $ALL {0} <StreamDC++ V:2.42,M:A,H:2/0/0,S:32>$ $LAN(T3)0x31${1}$1234$|'.format(self.nick,self.email))
+				print('sent myinfo to hub')
+				response = self.recv()
 				for item in response.split('|'):
 					if (item!=''):
 						whitespacepos = item.find(' ')
@@ -117,37 +152,9 @@ class Controller(object):
 		else:
 			raise Exception('Connection failed.')
 	#
-	#Method for receiving data from hub
-	def recv(self):
-		data = '';
-		while True:
-			try:
-				response = self.sockt.recv(1024)
-				print('response is {}'.format(response))
-				data = data+response
-				if not response:
-					break
-			except socket.timeout:
-				break
-		return data
-	#
-	#Method for receiving data from specific socket
-	def recv2(self,socket):
-		socket.settimeout(30)
-		data = '';
-		while True:
-			try:
-				response = socket.recv(1024)
-				print('response is {}'.format(response))
-				data = data+response
-				if not response:
-					break
-			except timeout:
-				break
-		return data
-	#
 	# Method for caching files
 	def cachefiles(self):
+		print('Now caching files...')
 		self.sockt.settimeout(50)
 		self.sockt.sendall('$GetNickList|')
 		data = self.recv()
@@ -172,6 +179,7 @@ class Controller(object):
 								#
 								#handling 'other client'
 								#
+								print('the other client has addr, ip:{0} and port:{1}'.format(ip,port))
 								s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 								s.connect((ip,int(port)))
 								response = self.recv2(s)
@@ -183,5 +191,6 @@ class Controller(object):
 def getip(domain):
 	return socket.gethostbyname_ex(domain)[2][0]
 if __name__=='__main__':
+	print('creating controller...')
 	controller = Controller()
-	controller.connect('127.0.0.1',1200)
+	controller.connect('127.0.0.1',411)
