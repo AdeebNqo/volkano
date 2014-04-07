@@ -14,6 +14,8 @@
 #
 import socket
 import threading
+import random
+import string
 
 class Controller(object):
 	sockt = None
@@ -27,7 +29,12 @@ class Controller(object):
 	password = 'default'
 	description = 'here lies dragons'
 	email = 'sumarai@testword.ru'
+	version = '1,0091'
 
+	#
+	# Method for generating locks
+	def getlock(self):
+		return 'EXTENDEDPROTOCOL'+''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(18))
 	def xor(self,s1,s2):
 		return ''.join(chr(ord(a) ^ ord(b)) for a,b in zip(s1,s2))
 	def xor(self,s1,num1):
@@ -169,7 +176,7 @@ class Controller(object):
 		#
 		# -get file list of user and index it
 		for user in users:
-			if user!='PtokaX': #remove this and simply check if user is not in OPlist or Botlist
+			if (user!='PtokaX' or user!=self.nick): #remove this and simply check if user is not in OPlist or Botlist
 				print('processing user:{}'.format(user))
 				port = getport()
 				print('retreived port...')
@@ -220,7 +227,43 @@ class Controller(object):
 		conn, addr = ssockt.accept()
 		conn.setblocking(1)
 		conn.settimeout(30)
-		print("{0} says {1}".format(user, conn.recv(1024)))
+		lockandnick = conn.recv(1024)
+		conn.sendall('$MyNick {0}|'.format(self.nick)+'$Lock {0} Pk=Volkano{1}|'.format(self.getlock(),self.version))
+		conn.sendall('$Direction Download {0}|'.format(random.randint(1,32767)))
+		#Computing the key from the lock and sending it to the other client
+		lockandnick = lockandnick.split('|')
+		for item in lockandnick:
+			if item.startswith('$Lock'):
+				spacepos = item.find(' ')
+				if (True if spacepos==-1 else False):
+					lock = item[item.find('$Lock')+1:]
+				else:
+					lock = item[item.find('$Lock')+1:spacepos]
+				print('actual lock val is {}'.format(lock))
+				lenlock = len(lock)
+				lock = bytearray(lock)
+				print('lock is {0}, length:{1}'.format(lock,lenlock))
+				key = chr(lock[0] ^ lock[lenlock-1] ^ lock[lenlock-2] ^ 5)
+				for i in range(1,lenlock):
+					key = key+chr(lock[i] ^ lock[i-1])		
+				finkey = ''
+				for i in range(len(key)):
+					finkey=finkey+chr(((ord(key[i]) & 0x0F) << 4) | ((ord(key[i]) & 0xF0) >> 4))
+				print('key is {0}, length:{1}'.format(finkey,len(finkey)))
+				conn.sendall('$Key {}|'.format(finkey))
+		#Retrieving key computation and more -- for simplicity, these will be ignored for the time being
+		data = ''		
+		try:
+			while True:
+				response = conn.recv(1024)
+				if not response:
+					break
+				else:
+					data = data+response
+		except socket.timeout:
+			pass
+		print('{0} responded with {1}'.format(user,data))
+		print('done sending key, abt to get file')
 	#
 	#Method for receiving data from specific socket
 	def recv2(self,somesocket):
