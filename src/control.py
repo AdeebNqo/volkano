@@ -168,27 +168,48 @@ class Controller(object):
 			if user!='PtokaX':
 				print('processing user:{}'.format(user))
 				port = getport()
-				self.sockt.sendall('$ConnectToMe {0} {1}:{2}|'.format(user,getlocalip(),port))
-				data = ''
-				try:
-					while True:
-						response = self.sockt.recv(1024)
-						print('response is {}'.format(response))
-						if (not response):
-							break
-						else:
-							data = data+response
-				except socket.timeout:
-					pass
-				print('hub response is {}'.format(data))
-				ssockt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-				ssocket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-				ssockt.bind(('127.0.0.1',port))
-				ssockt.listen(1)
-				conn= ssockt.accept()
-				conn.setblocking(1)
-				conn.setimeout(30)
-				print("{0} says {1}".format(user, conn.recv(1024)))
+				print('retreived port...')
+				revconnect = False
+				if (revconnect):
+					self.sockt.sendall('$RevConnectToMe {0} {1}|'.format(self.nick,user))
+					print('sent revconnect request..')
+					data = ''
+					try:
+						while True:
+							response = self.sockt.recv(1024)
+							print('response is {}'.format(response))
+							if (not response):
+								break
+							else:
+								data = data+response
+					except socket.timeout:
+						pass
+					print('hub response of revconnect is {}'.format(data))
+				else:
+					print('sending $ConnectToMe {0} {1}:{2}|'.format(user,'127.0.0.1',port))
+					self.sockt.sendall('$ConnectToMe {0} {1}:{2}|'.format(user,'127.0.0.1',port))
+					data = ''
+					try:
+						while True:
+							response = self.sockt.recv(1024)
+							print('response is {}'.format(response))
+							if (not response):
+								break
+							else:
+								data = data+response
+					except socket.timeout:
+						print('socket timedout.')
+						pass
+					print('hub response is {}'.format(data))
+					ssockt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+					ssockt.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+					ssockt.bind(('127.0.0.1',port))
+					ssockt.listen(1)
+					print('waiting for user connection...')
+					conn= ssockt.accept()
+					conn.setblocking(1)
+					conn.setimeout(30)
+					print("{0} says {1}".format(user, conn.recv(1024)))
 	#
 	#Method for receiving data from specific socket
 	def recv2(self,somesocket):
@@ -211,15 +232,13 @@ def getip(domain):
 	return socket.gethostbyname_ex(domain)[2][0]
 #
 # Method for getting an open port on host machine
-# returns -1 of port is not found in range 1024-9000
+# returns -1 of port is not found in range 5000-9999
 def getport():
 	soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	for i in range(1024,9000):
-		result = soc.connect_ex(('127.0.0.1',i))
-		if (result==0):
-			soc.close()
-			return i
-	return -1
+	soc.bind(('127.0.0.1',0))
+	port = soc.getsockname()[1]
+	soc.close()
+	return port
 #
 # Method for getting local ip
 def getlocalip():
