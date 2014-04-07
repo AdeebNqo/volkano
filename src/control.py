@@ -86,24 +86,34 @@ class Controller(object):
 				self.sockt.sendall('$ValidateNick {}|'.format(self.nick))
 				#
 				#Getting response from hub
+				print('getting response from hub..')
 				self.sockt.setblocking(1)
 				self.sockt.settimeout(30)
-				while True:
-					response = self.sockt.recv(1024)
-					if ((not response)==False):
-						break
-				for item in response.split('|'):
+				try:
+					data =''
+					while True:
+						response = self.sockt.recv(1024)
+						print('response is {}'.format(response))
+						if (not response):
+							break
+						else:
+							data = data+response
+				except socket.timeout:
+					pass
+				for item in data.split('|'):
 					if (item!=''):
 						whitespacepos = item.find(' ')
 						self.hubinfo[item[:whitespacepos]] = item[whitespacepos+1:]
 				if ('$GetPass' in self.hubinfo):
 					#
 					# if the hub requires authentication
+					print('sending password')
 					self.sockt.sendall('$MyPass {}|'.format(self.password))
 				print('hubinfo is {}'.format(self.hubinfo))
 				#Gained access to the hub
 				self.sockt.sendall('$Version 1,0091|')
 				self.sockt.sendall('$MyINFO $ALL {0} <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31${1}$1234$|'.format(self.nick,self.email))
+				print('getting response after sending myinfo..')
 				response = self.sockt.recv(9000)
 				for item in response.split('|'):
 					if (item!=''):
@@ -123,8 +133,53 @@ class Controller(object):
 	#
 	def getfiles(self):
 		self.sockt.sendall('$GetNickList|')
-		response = self.sockt.recv(9000)
-		print(response)
+		data = ''
+		try:
+			while True:
+				response = self.sockt.recv(1024)
+				print('response is {}'.format(response))
+				if (not response):
+					break
+				else:
+					data = data+response
+		except socket.timeout:
+			pass
+		data = data.split('|')
+		
+		#other logged in users
+		users = []
+		for item in data:
+			if item.startswith('$NickList'):
+				#getting all video files from the logged in users
+				users = item.replace('$NickList ','').split('$$')
+				for user in users:
+					if (user!='' or user!=self.nick):
+						users.append(user)
+			elif item.startswith('$MyINFO $ALL'):
+				tmp = item.split(' ')
+				if (tmp[2] !=self.nick):
+					users.append(tmp[2])
+		print('logged in users are {}'.format(users))
+		#
+		# Processing all the logged in users using seperate threads
+		#
+		# -get file list of user and index it
+		
+	#
+	#Method for receiving data from specific socket
+	def recv2(self,somesocket):
+		data = '';
+		try:
+			while True:
+				response = somesocket.recv(1024)
+				print('response is {}'.format(response))
+				if not response:
+					break
+				else:
+					data = data+response
+		except socket.timeout:
+			pass
+		return data
 #
 # Utill method for retrieving ip from domain
 #
