@@ -13,6 +13,7 @@
 # Controller for the volkano, the nmdc protocol video stream application
 #
 import socket
+import select
 
 class Controller(object):
 	sockt = None
@@ -22,7 +23,7 @@ class Controller(object):
 	hubinfo = {}
 	#
 	# User credentials
-	nick = 'sumarairiver'
+	nick = 'XV_yeah'
 	password = 'default'
 	description = 'here lies dragons'
 	email = 'sumarai@testword.ru'
@@ -33,26 +34,29 @@ class Controller(object):
 		data = ''
 		while True:
 			try:
-				response = self.sockt.recv(1024)
-				print('response is {}'.format(response))
-				data = data+response
-				if not response:
-					break
+				ready = select.select([self.sockt],[],[],30)
+				if (ready[0]):
+					response = self.sockt.recv(1024)
+					print('response is {}'.format(response))
+					data = data+response
+					if not response:
+						break
 			except socket.timeout:
 				break
 		return data
 	#
 	#Method for receiving data from specific socket
 	def recv2(self,socket):
-		socket.settimeout(30)
 		data = '';
 		while True:
 			try:
-				response = socket.recv(1024)
-				print('response is {}'.format(response))
-				data = data+response
-				if not response:
-					break
+				ready = select.select([self.sockt],[],[],30)
+				if (ready[0]):
+					response = socket.recv(1024)
+					print('response is {}'.format(response))
+					data = data+response
+					if not response:
+						break
 			except timeout:
 				break
 		return data
@@ -73,9 +77,9 @@ class Controller(object):
 		try:
 			print('trying to connect...')
 			self.sockt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			self.sockt.setblocking(1)
-			self.sockt.settimeout(40)
 			self.sockt.connect((host,port))
+			self.sockt.setblocking(0)
+			print('raw socket connected...')
 		except (socket.timeout,socket.error) as err:
 			self.retries = self.retries+1
 			if self.retries<3:
@@ -84,7 +88,7 @@ class Controller(object):
 			print('socket has been established!')
 			try:
 				#Let hub speak first
-				data = self.sockt.recv(9000)
+				data = self.recv()
 				for item in data.split('|'):
 					if (item!=''):
 						whitespacepos = item.find(' ')
@@ -114,8 +118,10 @@ class Controller(object):
 					finkey = ''
 					for i in range(len(key)):
 						finkey=finkey+chr(((ord(key[i]) & 0x0F) << 4) | ((ord(key[i]) & 0xF0) >> 4))
-					print('key is {0}, length:{1}'.format(finkey,len(finkey)))
+					print('key is {0} and keylength is {1}'.format(finkey.encode('utf-8'), len(finkey)))
 					self.sockt.sendall('$Key {}|'.format(finkey))
+					print('done sending key...')
+				print('abt to send nick...')
 				self.sockt.sendall('$ValidateNick {}|'.format(self.nick))
 				print('done sending nick and key to hub...')
 				#
@@ -133,7 +139,7 @@ class Controller(object):
 				print('sent password if neccessary')
 				print('hubinfo is {}'.format(self.hubinfo))
 				print('sending vers and myinfo...')
-				print('$MyINFO $ALL {0} <StreamDC++ V:2.42,M:A,H:2/0/0,S:32>$ $LAN(T3)0x31${1}$1234$|'.format(self.nick,self.email))
+				print('$MyINFO $ALL {0} <StreamDC++ V	:2.42,M:A,H:2/0/0,S:32>$ $LAN(T3)0x31${1}$1234$|'.format(self.nick,self.email))
 				#Gained access to the hub
 				self.sockt.sendall('$Version 1,0091|')
 				self.sockt.sendall('$MyINFO $ALL {0} <StreamDC++ V:2.42,M:A,H:2/0/0,S:32>$ $LAN(T3)0x31${1}$1234$|'.format(self.nick,self.email))
