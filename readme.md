@@ -12,6 +12,7 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 #TODO
 
 - [X] Connect to a nmdc hub
+- [ ] Setup client-client handshake
 - [ ] Get list of files
 - [ ] Index files in search server
 - [ ] design ui

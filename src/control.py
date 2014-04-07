@@ -201,7 +201,6 @@ class Controller(object):
 					try:
 						while True:
 							response = self.sockt.recv(1024)
-							print('response is {}'.format(response))
 							if not response:
 								break
 							else:
