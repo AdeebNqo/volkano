@@ -277,7 +277,10 @@ class Controller(object):
 					data = data+response
 		except socket.timeout:
 			pass
-		print('The file is {}'.format(data))
+		f = bz2.BZ2File('{}xml.bz2'.format(user),'w')
+		f.write(data)
+		f.close()
+		print('Done writing to {0}xml.bz2 file'.format(user))
 	#
 	#Method for receiving data from specific socket
 	def recv2(self,somesocket):
