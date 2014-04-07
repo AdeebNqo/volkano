@@ -16,6 +16,7 @@ import socket
 import threading
 import random
 import string
+import bz2
 
 class Controller(object):
 	sockt = None
@@ -263,7 +264,20 @@ class Controller(object):
 		except socket.timeout:
 			pass
 		print('{0} responded with {1}'.format(user,data))
-		print('done sending key, abt to get file')
+		#Retrieving file with the other client's shared files
+		conn.sendall('$ADCGET file files.xml.bz2 0 -1 ZL1|')
+		conn.settimeout(60)	
+		data = ''		
+		try:
+			while True:
+				response = conn.recv(1024)
+				if not response:
+					break
+				else:
+					data = data+response
+		except socket.timeout:
+			pass
+		print('The file is {}'.format(data))
 	#
 	#Method for receiving data from specific socket
 	def recv2(self,somesocket):
