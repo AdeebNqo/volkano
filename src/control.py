@@ -164,7 +164,31 @@ class Controller(object):
 		# Processing all the logged in users using seperate threads
 		#
 		# -get file list of user and index it
-		
+		for user in users:
+			if user!='PtokaX':
+				print('processing user:{}'.format(user))
+				port = getport()
+				self.sockt.sendall('$ConnectToMe {0} {1}:{2}|'.format(user,getlocalip(),port))
+				data = ''
+				try:
+					while True:
+						response = self.sockt.recv(1024)
+						print('response is {}'.format(response))
+						if (not response):
+							break
+						else:
+							data = data+response
+				except socket.timeout:
+					pass
+				print('hub response is {}'.format(data))
+				ssockt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+				ssocket.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+				ssockt.bind(('127.0.0.1',port))
+				ssockt.listen(1)
+				conn= ssockt.accept()
+				conn.setblocking(1)
+				conn.setimeout(30)
+				print("{0} says {1}".format(user, conn.recv(1024)))
 	#
 	#Method for receiving data from specific socket
 	def recv2(self,somesocket):
@@ -181,10 +205,25 @@ class Controller(object):
 			pass
 		return data
 #
-# Utill method for retrieving ip from domain
+# Utility method for retrieving ip from domain
 #
 def getip(domain):
 	return socket.gethostbyname_ex(domain)[2][0]
+#
+# Method for getting an open port on host machine
+# returns -1 of port is not found in range 1024-9000
+def getport():
+	soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+	for i in range(1024,9000):
+		result = soc.connect_ex(('127.0.0.1',i))
+		if (result==0):
+			soc.close()
+			return i
+	return -1
+#
+# Method for getting local ip
+def getlocalip():
+	return socket.gethostbyname(socket.gethostname())
 if __name__=='__main__':
 	controller = Controller()
 	controller.connect('127.0.0.1',411)
