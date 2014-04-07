@@ -13,6 +13,7 @@
 # Controller for the volkano, the nmdc protocol video stream application
 #
 import socket
+import threading
 
 class Controller(object):
 	sockt = None
@@ -146,13 +147,16 @@ class Controller(object):
 			pass
 		data = data.split('|')
 		
+		print('data is {}'.format(data))
 		#other logged in users
 		users = []
 		for item in data:
 			if item.startswith('$NickList'):
 				#getting all video files from the logged in users
 				users = item.replace('$NickList ','').split('$$')
-				for user in users:
+				print('logged in users are {}'.format(users))
+				for i in range(len(users)):
+					user = users[i]
 					if (user!='' or user!=self.nick):
 						users.append(user)
 			elif item.startswith('$MyINFO $ALL'):
@@ -165,7 +169,7 @@ class Controller(object):
 		#
 		# -get file list of user and index it
 		for user in users:
-			if user!='PtokaX':
+			if user!='PtokaX': #remove this and simply check if user is not in OPlist or Botlist
 				print('processing user:{}'.format(user))
 				port = getport()
 				print('retreived port...')
@@ -186,30 +190,38 @@ class Controller(object):
 						pass
 					print('hub response of revconnect is {}'.format(data))
 				else:
+					print('opening socket...')
+					t = threading.Thread(target=self.handleClient, args=(port,user,))
+					t.deamon = True
+					t.start()
+
 					print('sending $ConnectToMe {0} {1}:{2}|'.format(user,'127.0.0.1',port))
 					self.sockt.sendall('$ConnectToMe {0} {1}:{2}|'.format(user,'127.0.0.1',port))
-					data = ''
+					data = '';
 					try:
 						while True:
 							response = self.sockt.recv(1024)
 							print('response is {}'.format(response))
-							if (not response):
+							if not response:
 								break
 							else:
 								data = data+response
 					except socket.timeout:
-						print('socket timedout.')
 						pass
-					print('hub response is {}'.format(data))
-					ssockt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-					ssockt.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
-					ssockt.bind(('127.0.0.1',port))
-					ssockt.listen(1)
-					print('waiting for user connection...')
-					conn= ssockt.accept()
-					conn.setblocking(1)
-					conn.setimeout(30)
-					print("{0} says {1}".format(user, conn.recv(1024)))
+					print('the reply was {}'.format(data))
+					
+	#	
+	#Method for accepting other client connections and caching it's files
+	def handleClient(self,port,user):
+		ssockt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		ssockt.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
+		ssockt.bind(('127.0.0.1',port))
+		ssockt.listen(1)
+		print('waiting for user connection...')
+		conn, addr = ssockt.accept()
+		conn.setblocking(1)
+		conn.settimeout(30)
+		print("{0} says {1}".format(user, conn.recv(1024)))
 	#
 	#Method for receiving data from specific socket
 	def recv2(self,somesocket):
@@ -245,5 +257,5 @@ def getlocalip():
 	return socket.gethostbyname(socket.gethostname())
 if __name__=='__main__':
 	controller = Controller()
-	controller.connect('127.0.0.1',411)
+	controller.connect('127.0.0.1',1200)
 	x = input('quit?') # debug: for hanging onto the console
