@@ -48,7 +48,7 @@ class Controller(object):
 	retries = 0
 	def connect(self,host,port):
 		try:
-			print('trying to connect...')
+			print('Establising tcp connection...')
 			self.sockt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 			self.sockt.settimeout(60)
 			self.sockt.connect((host,port))
@@ -57,7 +57,7 @@ class Controller(object):
 			if self.retries<3:
 				self.connect(host,port+1)
 		if (self.retries<3):
-			print('socket has been established!')
+			print('connection has been established!\nNow initiating handshake...')
 			try:
 				#Let hub speak first
 				data = self.sockt.recv(9000)
@@ -65,7 +65,6 @@ class Controller(object):
 					if (item!=''):
 						whitespacepos = item.find(' ')
 						self.hubinfo[item[:whitespacepos]] = item[whitespacepos+1:]
-				print('the hubinfo stored so far is {}'.format(self.hubinfo))
 				#		
 				#Checking if hub requires key to be sent
 				#
@@ -80,22 +79,18 @@ class Controller(object):
 						lock = lockval[lockval.find('$Lock')+1:]
 					else:
 						lock = lockval[lockval.find('$Lock')+1:dot]
-					print('actual lock val is {}'.format(lock))
 					lenlock = len(lock)
 					lock = bytearray(lock)
-					print('lock is {0}, length:{1}'.format(lock,lenlock))
 					key = chr(lock[0] ^ lock[lenlock-1] ^ lock[lenlock-2] ^ 5)
 					for i in range(1,lenlock):
 						key = key+chr(lock[i] ^ lock[i-1])		
 					finkey = ''
 					for i in range(len(key)):
 						finkey=finkey+chr(((ord(key[i]) & 0x0F) << 4) | ((ord(key[i]) & 0xF0) >> 4))
-					print('key is {0}, length:{1}'.format(finkey,len(finkey)))
 					self.sockt.sendall('$Key {}|'.format(finkey))
 				self.sockt.sendall('$ValidateNick {}|'.format(self.nick))
 				#
 				#Getting response from hub
-				print('getting response from hub..')
 				self.sockt.setblocking(1)
 				self.sockt.settimeout(30)
 				try:
@@ -116,19 +111,17 @@ class Controller(object):
 				if ('$GetPass' in self.hubinfo):
 					#
 					# if the hub requires authentication
-					print('sending password')
 					self.sockt.sendall('$MyPass {}|'.format(self.password))
 				print('hubinfo is {}'.format(self.hubinfo))
 				#Gained access to the hub
 				self.sockt.sendall('$Version 1,0091|')
 				self.sockt.sendall('$MyINFO $ALL {0} <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31${1}$1234$|'.format(self.nick,self.email))
-				print('getting response after sending myinfo..')
 				response = self.sockt.recv(9000)
 				for item in response.split('|'):
 					if (item!=''):
 						whitespacepos = item.find(' ')
 						self.hubinfo[item[:whitespacepos]] = item[whitespacepos+1:]
-				print(self.hubinfo)
+				print('nmdc handshake complete.')
 				print('Now getting file lists...')
 				self.getfiles()
 			except socket.timeout:
@@ -141,6 +134,8 @@ class Controller(object):
 	# get files  
 	#
 	def getfiles(self):
+		runningthreads = [] #cache of all runing threads -- threads retrieve files from other connected clients
+
 		self.sockt.sendall('$GetNickList|')
 		data = ''
 		try:
@@ -171,20 +166,20 @@ class Controller(object):
 				tmp = item.split(' ')
 				if (tmp[2] !=self.nick):
 					users.append(tmp[2])
-		print('logged in users are {}'.format(users))
 		#
 		# Processing all the logged in users using seperate threads
 		#
 		# -get file list of user and index it
+		#
+		users = list(set(users)) # Removing duplicates
+		print('logged in users are {}'.format(users))
 		for user in users:
-			if (user!='PtokaX' or user!=self.nick): #remove this and simply check if user is not in OPlist or Botlist
-				print('processing user:{}'.format(user))
+			user=user.strip()
+			if (user!='PtokaX' or user!=self.nick or user!=''): #remove this and simply check if user is not in OPlist or Botlist
 				port = getport()
-				print('retreived port...')
 				revconnect = False
 				if (revconnect):
 					self.sockt.sendall('$RevConnectToMe {0} {1}|'.format(self.nick,user))
-					print('sent revconnect request..')
 					data = ''
 					try:
 						while True:
@@ -196,12 +191,13 @@ class Controller(object):
 								data = data+response
 					except socket.timeout:
 						pass
-					print('hub response of revconnect is {}'.format(data))
+					print('hub response to revconnect is {}'.format(data))
 				else:
-					print('opening socket...')
+					print('starting thread...')
 					t = threading.Thread(target=self.handleClient, args=(port,user,))
-					t.deamon = True
+					t.daemon = True
 					t.start()
+					runningthreads.append(t)
 
 					print('sending $ConnectToMe {0} {1}:{2}|'.format(user,'127.0.0.1',port))
 					self.sockt.sendall('$ConnectToMe {0} {1}:{2}|'.format(user,'127.0.0.1',port))
@@ -216,19 +212,27 @@ class Controller(object):
 					except socket.timeout:
 						pass
 					print('the reply was {}'.format(data))
+		#
+		# waiting for all threads to finish
+		for thread in runningthreads:
+			thread.join()
 					
 	#	
 	#Method for accepting other client connections and caching it's files
 	def handleClient(self,port,user):
+		print('handleClient() called! for {}'.format(user))
 		ssockt = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		ssockt.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
 		ssockt.bind(('127.0.0.1',port))
 		ssockt.listen(1)
 		print('waiting for user connection...')
 		conn, addr = ssockt.accept()
+		print('connection established!')
+		ssockt.close() #closing the connection socket such that no other client can try to connect and pose as the other client.
 		conn.setblocking(1)
 		conn.settimeout(30)
 		lockandnick = conn.recv(1024)
+		print('sending mynick and lock, etc..')
 		conn.sendall('$MyNick {0}|'.format(self.nick)+'$Lock {0} Pk=Volkano{1}|'.format(self.getlock(),self.version))
 		conn.sendall('$Direction Download {0}|'.format(random.randint(1,32767)))
 		#Computing the key from the lock and sending it to the other client
@@ -240,17 +244,14 @@ class Controller(object):
 					lock = item[item.find('$Lock')+1:]
 				else:
 					lock = item[item.find('$Lock')+1:spacepos]
-				print('actual lock val is {}'.format(lock))
 				lenlock = len(lock)
 				lock = bytearray(lock)
-				print('lock is {0}, length:{1}'.format(lock,lenlock))
 				key = chr(lock[0] ^ lock[lenlock-1] ^ lock[lenlock-2] ^ 5)
 				for i in range(1,lenlock):
 					key = key+chr(lock[i] ^ lock[i-1])		
 				finkey = ''
 				for i in range(len(key)):
 					finkey=finkey+chr(((ord(key[i]) & 0x0F) << 4) | ((ord(key[i]) & 0xF0) >> 4))
-				print('key is {0}, length:{1}'.format(finkey,len(finkey)))
 				conn.sendall('$Key {}|'.format(finkey))
 		#Retrieving key computation and more -- for simplicity, these will be ignored for the time being
 		data = ''		
@@ -263,7 +264,7 @@ class Controller(object):
 					data = data+response
 		except socket.timeout:
 			pass
-		print('{0} responded with {1}'.format(user,data))
+		print('sending adcget...')
 		#Retrieving file with the other client's shared files
 		conn.sendall('$ADCGET file files.xml.bz2 0 -1 ZL1|')
 		conn.settimeout(60)	
@@ -277,10 +278,12 @@ class Controller(object):
 					data = data+response
 		except socket.timeout:
 			pass
-		f = bz2.BZ2File('{}xml.bz2'.format(user),'w')
-		f.write(data)
+		f = bz2.BZ2File('{}.xml.bz2'.format(user),'w')
+		ar = data.split('|')
+		for i in range(1,len(ar)):
+			f.write(ar[i])
 		f.close()
-		print('Done writing to {0}xml.bz2 file'.format(user))
+		print('done writing to {}.xml.bz2'.format(user))
 	#
 	#Method for receiving data from specific socket
 	def recv2(self,somesocket):
