@@ -172,10 +172,15 @@ class Controller(object):
 		# -get file list of user and index it
 		#
 		users = list(set(users)) # Removing duplicates
+		print('the len is '.format(len(users)))		
+		for i in range(len(users)):
+			print(i)
+			if (users[i].strip()==''):
+				del users[i]
 		print('logged in users are {}'.format(users))
 		for user in users:
 			user=user.strip()
-			if (user!='PtokaX' or user!=self.nick or user!=''): #remove this and simply check if user is not in OPlist or Botlist
+			if (user!='PtokaX' or user!=self.nick): #remove this and simply check if user is not in OPlist or Botlist
 				port = getport()
 				revconnect = False
 				if (revconnect):
@@ -228,10 +233,10 @@ class Controller(object):
 		print('waiting for user connection...')
 		conn, addr = ssockt.accept()
 		print('connection established!')
-		ssockt.close() #closing the connection socket such that no other client can try to connect and pose as the other client.
 		conn.setblocking(1)
 		conn.settimeout(30)
 		lockandnick = conn.recv(1024)
+		print('lockandnick is {}'.format(lockandnick))
 		print('sending mynick and lock, etc..')
 		conn.sendall('$MyNick {0}|'.format(self.nick)+'$Lock {0} Pk=Volkano{1}|'.format(self.getlock(),self.version))
 		conn.sendall('$Direction Download {0}|'.format(random.randint(1,32767)))
