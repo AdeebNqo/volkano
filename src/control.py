@@ -171,13 +171,9 @@ class Controller(object):
 		#
 		# -get file list of user and index it
 		#
-		users = list(set(users)) # Removing duplicates
-		print('the len is '.format(len(users)))		
-		for i in range(len(users)):
-			print(i)
-			if (users[i].strip()==''):
-				del users[i]
-		print('logged in users are {}'.format(users))
+		users = list(set(users)) # Removing duplicates	
+		users.remove('')
+		print('logged in users are {0}'.format(users))
 		for user in users:
 			user=user.strip()
 			if (user!='PtokaX' or user!=self.nick): #remove this and simply check if user is not in OPlist or Botlist
@@ -232,6 +228,7 @@ class Controller(object):
 		ssockt.listen(1)
 		print('waiting for user connection...')
 		conn, addr = ssockt.accept()
+		ssockt.close()
 		print('connection established!')
 		conn.setblocking(1)
 		conn.settimeout(30)
