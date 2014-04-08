@@ -17,6 +17,8 @@ import threading
 import random
 import string
 import bz2
+import magic
+import time
 
 class Controller(object):
 	sockt = None
@@ -215,6 +217,7 @@ class Controller(object):
 					print('the reply was {}'.format(data))
 		#
 		# waiting for all threads to finish
+		#time.sleep(30)		
 		for thread in runningthreads:
 			thread.join()
 					
@@ -280,15 +283,16 @@ class Controller(object):
 					data = data+response
 		except socket.timeout:
 			pass
-		f = bz2.BZ2File('{}.xml.bz2'.format(user),'w')
+		#f = bz2.BZ2File('{}.xml.bz2'.format(user),'w')
+		mime = magic.Magic(mime=True)
 		ar = data.split('|')
-		print(ar[1].startswith('\x42\x5a\x68'))
+		val = ''
 		for i in range(1,len(ar)):
-			#print(ar[i])
-			f.write(ar[i])
-			#print(f.decompress(ar[i]))
-		f.close()
-		print('done writing to {}.xml.bz2'.format(user))
+			val = val+ar[i]
+		print('-1-')
+		print(mime.from_buffer(bytearray(val)))
+		print('-2-')
+		#print('done writing to {}.xml.bz2'.format(user))
 	#
 	#Method for receiving data from specific socket
 	def recv2(self,somesocket):
