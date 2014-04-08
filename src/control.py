@@ -282,9 +282,11 @@ class Controller(object):
 			pass
 		f = bz2.BZ2File('{}.xml.bz2'.format(user),'w')
 		ar = data.split('|')
+		print(ar[1].startswith('\x42\x5a\x68'))
 		for i in range(1,len(ar)):
-			print(bytes(ar[i]))
+			#print(ar[i])
 			f.write(ar[i])
+			#print(f.decompress(ar[i]))
 		f.close()
 		print('done writing to {}.xml.bz2'.format(user))
 	#

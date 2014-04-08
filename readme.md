@@ -27,3 +27,5 @@ source of subtitles http://imdbpy.sourceforge.net/
 themoviedb https://github.com/doganaydin/themoviedb/
 
 Question on adc handshake http://archive.dcbase.org/dcpp_forums/viewtopic.php?f=6&t=17172
+
+Might need to identify type of file http://stackoverflow.com/questions/13044562/python-mechanism-to-identify-compressed-file-type-and-uncompress
