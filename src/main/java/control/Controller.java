@@ -151,26 +151,24 @@ public class Controller{
 								for (String val:lockclient.split("\\|")){
 									vals.add(val);
 								}
-								System.err.println("recived lock from client"+lockclient);
+								//sending supports
+								sendData("$Supports MiniSlots XmlBZList ADCGet TTHL TTHF ZLIG|");
+								sendData("$Direction Download "+randInt(1,32767)+"|");
 								for (String lnitem:vals){
 									if (lnitem.startsWith("$Lock")){
 										System.err.println("other client's lock is "+lnitem);
 										getLockSendKey(lnitem);
 									}
 								}
-								//sending supports
-								sendData("$Supports MiniSlots XmlBZList ADCGet TTHL TTHF ZLIG|");
-								sendData("$Direction Download "+randInt(1,32767)+"|");
 								//retrive key response, etc
 								String keyresponse = getResponse();
-								System.err.println("respose for direction download is "+keyresponse);
-								sendData("$ADCGET file files.xml.bz2 0 -1 ZL1|");
-								System.err.println("Retrieving file..");
-								Scanner input = new Scanner(in);
-								input.useDelimiter("\\|");
-								while(input.hasNextLine()){
-									System.err.println(input.nextLine());
+								while(keyresponse.isEmpty()){
+									System.err.println("Respose for key send is "+keyresponse);
+									sendData("$ADCGET file files.xml.bz2 0 -1 ZL1|");
+									System.err.println("Retrieving file..");
+									System.err.println("Stream has "+in.available()+" bytes");
 								}
+								
 							}catch(Exception e){
 								//gracefully fail
 							}
@@ -318,12 +316,13 @@ public class Controller{
 			return sanitizedLockkey;
 		}
 		else{
-			lockkey=lockkey.replaceAll("/%DCN000%/",Character.toChars(0));
-			lockkey=lockkey.replaceAll("/%DCN005%/",Character.toChars(5));
-			lockkey=lockkey.replaceAll("/%DCN036%/",Character.toChars(36));
-			lockkey=lockkey.replaceAll("/%DCN096%/",Character.toChars(96));
-			lockkey=lockkey.replaceAll("/%DCN124%/",Character.toChars(124));
-			lockkey=lockkey.replaceAll("/%DCN126%/",Character.toChars(126));
+			lockkey=lockkey.replaceAll("/%DCN000%/",String.valueOf(Character.toChars(0)));
+			lockkey=lockkey.replaceAll("/%DCN005%/",String.valueOf(Character.toChars(5)));
+			lockkey=lockkey.replaceAll("/%DCN036%/",String.valueOf(Character.toChars(36)));
+			lockkey=lockkey.replaceAll("/%DCN096%/",String.valueOf(Character.toChars(96)));
+			lockkey=lockkey.replaceAll("/%DCN124%/",String.valueOf(Character.toChars(124)));
+			lockkey=lockkey.replaceAll("/%DCN126%/",String.valueOf(Character.toChars(126)));
+			return lockkey;
 		}
 	}
 	/*

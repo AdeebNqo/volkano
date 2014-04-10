@@ -258,7 +258,7 @@ class Controller(object):
 				for i in range(len(key)):
 					finkey=finkey+chr(((ord(key[i]) & 0x0F) << 4) | ((ord(key[i]) & 0xF0) >> 4))
 				conn.sendall('$Key {}|'.format(finkey))
-		#Retrieving key computation and more -- for simplicity, these will be ignored for the time being
+		#Retrieving key computation and	 more -- for simplicity, these will be ignored for the time being
 		data = ''		
 		try:
 			while True:
