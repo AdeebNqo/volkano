@@ -24,6 +24,12 @@ import java.net.ServerSocket;
 import java.security.SecureRandom;
 import java.math.BigInteger;
 import java.util.Scanner;
+import java.io.FileOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.FileOutputStream;
+import java.io.File;
+
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 
 public class Controller{
 	
@@ -130,13 +136,15 @@ public class Controller{
 					//handling client connection
 					Thread t = new Thread(){
 						Scanner in;
+						InputStream in2;
 						OutputStream out;
 						String mynick = nick;
 						public void run(){
 							try{
 								
 								LinkedList<String> vals = new LinkedList<String>();
-								in = new Scanner(clientSocket.getInputStream());
+								in2 = clientSocket.getInputStream();
+								in = new Scanner(in2);
 								in.useDelimiter("\\|");
 								out = clientSocket.getOutputStream();
 								//retrieve other client's nick
@@ -160,13 +168,26 @@ public class Controller{
 								String clientkey = getResponse();
 								//request file list
 								sendData("$ADCGET file files.xml.bz2 0 -1 ZL1|");
+								String adcresponse = getResponse();
+								int filesize = Integer.parseInt(adcresponse.split(" ")[4]);		
 								System.err.println("Recieving file");						
-								for (int i=0; i<2; ++i){
-									System.err.println(getResponse());					
+								//delay until stream has all of the file
+								System.err.println("filesize: "+filesize);
+								while(in2.available()<filesize){
+									
 								}
-								
+								BZip2CompressorInputStream bzstream = new BZip2CompressorInputStream(in2);
+								FileOutputStream xmlFile = new FileOutputStream("file.xml");
+								byte[] bytes = new byte[1024];
+								while((bzstream.read(bytes))!=-1){
+									xmlFile.write(bytes);
+								}
+								xmlFile.close();
+								bzstream.close();
+								System.err.println("Done.bye..");
 							}catch(Exception e){
 								//gracefully fail
+								e.printStackTrace();
 							}
 						}
 						private String getResponse() throws IOException{
