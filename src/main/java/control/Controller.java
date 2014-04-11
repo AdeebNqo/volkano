@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.util.Scanner;
 import java.io.FileOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.File;
 
@@ -79,7 +80,7 @@ public class Controller{
 		//sending client's nick
 		sendData("$ValidateNick "+nick+"|");
 		String responseX = getResponse();
-		System.out.println("$validnick RESPONSE: "+responseX);
+		System.err.println("$validnick RESPONSE: "+responseX);
 
 		String[] itemsX = responseX.split("|");
 		for (String itemX:itemsX){
@@ -167,25 +168,41 @@ public class Controller{
 								//receiving  key response from other client
 								String clientkey = getResponse();
 								//request file list
-								sendData("$ADCGET file files.xml.bz2 0 -1 ZL1|");
+								sendData("$ADCGET file files.xml 0 -1|");
 								String adcresponse = getResponse();
+								System.err.println("adcresponse is "+adcresponse);
 								int filesize = Integer.parseInt(adcresponse.split(" ")[4]);		
 								System.err.println("filesize: "+filesize);
 
 								//reading the file data to var: data
-								byte[] data = new byte[filesize];
-								int read = 0;						
+								byte[] data = new byte[2*filesize];
+								int read = 0;
 								for (; read<filesize;){
 									int available = in2.available();
 									if (available>0){
-										in2.read(data, read, available);
-										read += available+1;
+										in2.read(data, read==0? 0 : read+1, available);
+										read += available;
 									}
+									break;
 								}
+							
+								//adding header to file data
+								byte[] header = "BZh91AY&SY".getBytes();
+								byte[] finaldata = new byte[data.length + header.length];
+								int i=0;								
+								for (; i<header.length; ++i){
+									finaldata[i] = header[i];
+								}
+								for (int j=0; j<data.length; ++i,++j){
+									finaldata[i] = data[j];						
+								}
+	
 								System.err.println("total num of bytes read "+read);
-
+								for (int j=0; j<data.length; ++j){
+									System.out.print((char)data[j]);	
+								}
 								//decompressing the file
-								ByteArrayInputStream f = new ByteArrayInputStream(data);		
+								ByteArrayInputStream f = new ByteArrayInputStream(finaldata);		
 								BZip2CompressorInputStream bzstream = new BZip2CompressorInputStream(f);
 								FileOutputStream xmlFile = new FileOutputStream("file.xml");
 								byte[] bytes = new byte[1024];
@@ -193,6 +210,8 @@ public class Controller{
 								while((count = bzstream.read(bytes))!=-1){
 									xmlFile.write(bytes, 0, count);
 								}
+								//FileOutputStream xmlFile = new FileOutputStream("file.xml.bz2");
+								//xmlFile.write(finaldata);
 								xmlFile.close();
 								bzstream.close();
 
