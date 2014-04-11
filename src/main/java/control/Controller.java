@@ -173,14 +173,32 @@ public class Controller{
 								System.err.println("Recieving file");						
 								//delay until stream has all of the file
 								System.err.println("filesize: "+filesize);
-								while(in2.available()<filesize){
-									
+
+								byte[] data = new byte[filesize];
+								//block until stream has all the file
+								int read = 0;						
+								for (int i=0; read<filesize;){
+									int available = in2.available();
+									int leftspace = filesize-read;
+									if (available>0){
+										System.err.println("read: "+read+" available:"+available);
+										in2.read(data, read, available>leftspace? leftspace:available);
+										++i;
+									}
+									read += (available>leftspace? leftspace:available)+1;
 								}
-								BZip2CompressorInputStream bzstream = new BZip2CompressorInputStream(in2);
+								System.err.println("total num of bytes read "+read);
+
+								ByteArrayInputStream f = new ByteArrayInputStream(data);
+								//FileOutputStream ile = new FileOutputStream("files.xml.bz2");
+								//ile.write(data);
+								//decompressing the file
+								BZip2CompressorInputStream bzstream = new BZip2CompressorInputStream(f);
 								FileOutputStream xmlFile = new FileOutputStream("file.xml");
 								byte[] bytes = new byte[1024];
-								while((bzstream.read(bytes))!=-1){
-									xmlFile.write(bytes);
+								int count;
+								while((count = bzstream.read(bytes))!=-1){
+									xmlFile.write(bytes, 0, count);
 								}
 								xmlFile.close();
 								bzstream.close();
