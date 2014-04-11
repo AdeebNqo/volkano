@@ -170,29 +170,22 @@ public class Controller{
 								sendData("$ADCGET file files.xml.bz2 0 -1 ZL1|");
 								String adcresponse = getResponse();
 								int filesize = Integer.parseInt(adcresponse.split(" ")[4]);		
-								System.err.println("Recieving file");						
-								//delay until stream has all of the file
 								System.err.println("filesize: "+filesize);
 
+								//reading the file data to var: data
 								byte[] data = new byte[filesize];
-								//block until stream has all the file
 								int read = 0;						
-								for (int i=0; read<filesize;){
+								for (; read<filesize;){
 									int available = in2.available();
-									int leftspace = filesize-read;
 									if (available>0){
-										System.err.println("read: "+read+" available:"+available);
-										in2.read(data, read, available>leftspace? leftspace:available);
-										++i;
+										in2.read(data, read, available);
+										read += available+1;
 									}
-									read += (available>leftspace? leftspace:available)+1;
 								}
 								System.err.println("total num of bytes read "+read);
 
-								ByteArrayInputStream f = new ByteArrayInputStream(data);
-								//FileOutputStream ile = new FileOutputStream("files.xml.bz2");
-								//ile.write(data);
 								//decompressing the file
+								ByteArrayInputStream f = new ByteArrayInputStream(data);		
 								BZip2CompressorInputStream bzstream = new BZip2CompressorInputStream(f);
 								FileOutputStream xmlFile = new FileOutputStream("file.xml");
 								byte[] bytes = new byte[1024];
@@ -202,6 +195,7 @@ public class Controller{
 								}
 								xmlFile.close();
 								bzstream.close();
+
 								System.err.println("Done.bye..");
 							}catch(Exception e){
 								//gracefully fail
