@@ -174,8 +174,12 @@ public class Controller{
 								int filesize = Integer.parseInt(adcresponse.split(" ")[4]);		
 								System.err.println("filesize: "+filesize);
 
+								in.useDelimiter("</FileListing>");
+								while(in.hasNext()){
+									System.out.println(in.next());			
+								}							
 								//reading the file data to var: data
-								byte[] data = new byte[2*filesize];
+								/*byte[] data = new byte[2*filesize];
 								int read = 0;
 								for (; read<filesize;){
 									int available = in2.available();
@@ -183,37 +187,11 @@ public class Controller{
 										in2.read(data, read==0? 0 : read+1, available);
 										read += available;
 									}
-									break;
 								}
-							
-								//adding header to file data
-								byte[] header = "BZh91AY&SY".getBytes();
-								byte[] finaldata = new byte[data.length + header.length];
-								int i=0;								
-								for (; i<header.length; ++i){
-									finaldata[i] = header[i];
-								}
-								for (int j=0; j<data.length; ++i,++j){
-									finaldata[i] = data[j];						
-								}
-	
-								System.err.println("total num of bytes read "+read);
+
 								for (int j=0; j<data.length; ++j){
 									System.out.print((char)data[j]);	
-								}
-								//decompressing the file
-								ByteArrayInputStream f = new ByteArrayInputStream(finaldata);		
-								BZip2CompressorInputStream bzstream = new BZip2CompressorInputStream(f);
-								FileOutputStream xmlFile = new FileOutputStream("file.xml");
-								byte[] bytes = new byte[1024];
-								int count;
-								while((count = bzstream.read(bytes))!=-1){
-									xmlFile.write(bytes, 0, count);
-								}
-								//FileOutputStream xmlFile = new FileOutputStream("file.xml.bz2");
-								//xmlFile.write(finaldata);
-								xmlFile.close();
-								bzstream.close();
+								}*/
 
 								System.err.println("Done.bye..");
 							}catch(Exception e){
