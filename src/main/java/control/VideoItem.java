@@ -1,7 +1,8 @@
+import javax.swing.ImageIcon;
 public class VideoItem{
 	private ImageIcon cover;
 	private String name;
-	private description;
+	private String description;
 	private String type;
 	public VideoItem(){
 

@@ -175,23 +175,7 @@ public class Controller{
 								System.err.println("filesize: "+filesize);
 
 								in.useDelimiter("</FileListing>");
-								while(in.hasNext()){
-									System.out.println(in.next());			
-								}							
-								//reading the file data to var: data
-								/*byte[] data = new byte[2*filesize];
-								int read = 0;
-								for (; read<filesize;){
-									int available = in2.available();
-									if (available>0){
-										in2.read(data, read==0? 0 : read+1, available);
-										read += available;
-									}
-								}
-
-								for (int j=0; j<data.length; ++j){
-									System.out.print((char)data[j]);	
-								}*/
+								String filelist = in.next();
 
 								System.err.println("Done.bye..");
 							}catch(Exception e){
@@ -206,52 +190,9 @@ public class Controller{
 							out.write(data.getBytes());
 							out.flush();
 						}
-						public String sanitizeLockKey(String lockkey,int mode){
-		
-							int len = lockkey.length();
-							if (len==0){		
-								String sanitizedLockkey = "";
-								for (int i=0; i<len; ++i){
-									int val = lockkey.charAt(i);
-									switch(val){
-										case 0:{
-											sanitizedLockkey+="/%DCN000%/";
-											break;}
-										case 5:{
-											sanitizedLockkey+="/%DCN005%/";
-											break;}
-										case 36:{
-											sanitizedLockkey+="/%DCN036%/";
-											break;}
-										case 96:{
-											sanitizedLockkey+="/%DCN096%/";
-											break;}
-										case 124:{
-											sanitizedLockkey+="/%DCN124%/";
-											break;}
-										case 126:{
-											sanitizedLockkey+="/%DCN126%/";
-											break;}
-										default:{
-											sanitizedLockkey+=""+lockkey.charAt(i);
-											break;}
-									}
-								}
-								return sanitizedLockkey;
-							}
-							else{
-								lockkey=lockkey.replaceAll("/%DCN000%/",String.valueOf(Character.toChars(0)));
-								lockkey=lockkey.replaceAll("/%DCN005%/",String.valueOf(Character.toChars(5)));
-								lockkey=lockkey.replaceAll("/%DCN036%/",String.valueOf(Character.toChars(36)));
-								lockkey=lockkey.replaceAll("/%DCN096%/",String.valueOf(Character.toChars(96)));
-								lockkey=lockkey.replaceAll("/%DCN124%/",String.valueOf(Character.toChars(124)));
-								lockkey=lockkey.replaceAll("/%DCN126%/",String.valueOf(Character.toChars(126)));
-								return lockkey;
-							}
-						}
 						private void getLockSendKey(String item) throws IOException{
 							String[] values = item.split(" ");
-							String lock = sanitizeLockKey(values[1],1);
+							String lock = Controller.sanitizeLockKey(values[1],1);
 							System.err.println("Lock value is "+lock);
 							int len = lock.length();
 		
@@ -266,7 +207,7 @@ public class Controller{
 								char y = (char)((key.charAt(i) & 0x0F0F0F0F) << 4);
 								newchars[i] = (char)(x | y);
 							}
-							key = sanitizeLockKey(String.valueOf(newchars),0);
+							key = Controller.sanitizeLockKey(String.valueOf(newchars),0);
 							System.err.println("Sending "+key);
 							sendData("$Key "+key+"|");
 						}
@@ -274,6 +215,7 @@ public class Controller{
 					t.start();
 					System.err.println("Other client connected...");
 					t.join();
+					System.err.println("Controller exiting...");
 				}
 			}
 		}
@@ -340,7 +282,7 @@ public class Controller{
 			char y = (char)((key.charAt(i) & 0x0F0F0F0F) << 4);
 			newchars[i] = (char)(x | y);
 		}
-		key = sanitizeLockKey(String.valueOf(newchars),0);
+		key = Controller.sanitizeLockKey(String.valueOf(newchars),0);
 		System.err.println("Sending "+key);
 		sendData("$Key "+key+"|");
 	}
@@ -350,7 +292,7 @@ public class Controller{
 
 	mode indicates how to clean lock/key. 0 for replace chars with odd strings, 1 remove odd string for chars
 	*/
-	public String sanitizeLockKey(String lockkey,int mode){
+	public static String sanitizeLockKey(String lockkey,int mode){
 		
 		int len = lockkey.length();
 		if (len==0){		
