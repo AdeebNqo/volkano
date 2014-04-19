@@ -31,6 +31,7 @@ Question on adc handshake http://archive.dcbase.org/dcpp_forums/viewtopic.php?f=
 
 Might need to identify type of file http://stackoverflow.com/questions/13044562/python-mechanism-to-identify-compressed-file-type-and-uncompress
 
+To download a file which is listed in the FileListing, one can use $ADCGET. However, do not use the filename. Rather use `TTH/<file tth here>`
 #Updates
 
 09 Tshazimpuzi 2014: Abandoned python, cannot recieve files using python. Moving to use java

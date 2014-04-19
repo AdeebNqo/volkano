@@ -176,8 +176,16 @@ public class Controller{
 
 								in.useDelimiter("</FileListing>");
 								String filelist = in.next();
+								System.err.println("filelist: "+filelist);
 
-								System.err.println("Done.bye..");
+								in.useDelimiter("\\|");
+								System.err.println("Downloading file 46GU5HFDLWBRNCLPXYAWMGS6JASDKTDOEUK5VXQ");
+								sendData("$ADCGET file TTH/46GU5HFDLWBRNCLPXYAWMGS6JASDKTDOEUK5VXQ 0 -1|");
+								String adcresponseX = getResponse();
+								System.err.println("adcresponse is "+adcresponseX);
+								int filesizeX = Integer.parseInt(adcresponseX.split(" ")[4]);		
+								System.err.println("filesize: "+filesizeX);
+								
 							}catch(Exception e){
 								//gracefully fail
 								e.printStackTrace();
