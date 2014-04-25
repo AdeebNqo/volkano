@@ -1,4 +1,10 @@
 import javax.mail.util.ByteArrayDataSource;
+import javax.media.Player;
+import java.awt.Component;
+import java.io.InputStream;
+import java.net.URLConnection;
+import javax.mail.util.ByteArrayDataSource;
+import javax.media.Manager;
 public class VideoComponent{
 	
 	Player mediaPlayer;

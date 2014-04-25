@@ -126,107 +126,107 @@ public class Controller{
 					//passive client
 				}
 				else{
-					//active client
-					ServerSocket s = new ServerSocket(0);
-					int clientport = s.getLocalPort();
-					String clientip = "127.0.0.1";
-					sendData("$ConnectToMe "+user+" "+clientip+":"+clientport+"|");
-					String connectclientResponse = getResponse();
-					final Socket clientSocket = s.accept();
-					s.close();
-					//handling client connection
-					Thread t = new Thread(){
-						Scanner in;
-						InputStream in2;
-						OutputStream out;
-						String mynick = nick;
-						public void run(){
-							try{
-								
-								LinkedList<String> vals = new LinkedList<String>();
-								in2 = clientSocket.getInputStream();
-								in = new Scanner(in2);
-								in.useDelimiter("\\|");
-								out = clientSocket.getOutputStream();
-								//retrieve other client's nick
-								String clientnick = getResponse();
-								//send mynick
-								sendData("$MyNick "+nick+"|");
-								//sending mylock
-								sendData("$Lock EXTENDEDPROTOCOL"+getKey()+" Pk=Volkano"+version+"ABCABC|");
-								//reading lock
-								String lockclient = getResponse();
-								//sending stuff supported
-								sendData("$Supports MiniSlots XmlBZList ADCGet TTHL TTHF ZLIG|");
-								//notifying that client wants to download
-								sendData("$Direction Download "+randInt(1,32767)+"|");
-								//sending key
-								getLockSendKey(lockclient);
-								//receive stuff supported by other client
-								String clientsupport = getResponse();
-								String clientdirection = getResponse();
-								//receiving  key response from other client
-								String clientkey = getResponse();
-								//request file list
-								sendData("$ADCGET file files.xml 0 -1|");
-								String adcresponse = getResponse();
-								System.err.println("adcresponse is "+adcresponse);
-								int filesize = Integer.parseInt(adcresponse.split(" ")[4]);		
-								System.err.println("filesize: "+filesize);
-
-								in.useDelimiter("</FileListing>");
-								String filelist = in.next();
-								System.err.println("filelist: "+filelist);
-
-								in.useDelimiter("\\|");
-								System.err.println("Downloading file 46GU5HFDLWBRNCLPXYAWMGS6JASDKTDOEUK5VXQ");
-								sendData("$ADCGET file TTH/46GU5HFDLWBRNCLPXYAWMGS6JASDKTDOEUK5VXQ 0 -1|");
-								String adcresponseX = getResponse();
-								System.err.println("adcresponse is "+adcresponseX);
-								int filesizeX = Integer.parseInt(adcresponseX.split(" ")[4]);		
-								System.err.println("filesize: "+filesizeX);
-								
-							}catch(Exception e){
-								//gracefully fail
-								e.printStackTrace();
-							}
-						}
-						private String getResponse() throws IOException{
-							return in.next();
-						}
-						private void sendData(String data) throws IOException{
-							out.write(data.getBytes());
-							out.flush();
-						}
-						private void getLockSendKey(String item) throws IOException{
-							String[] values = item.split(" ");
-							String lock = Controller.sanitizeLockKey(values[1],1);
-							System.err.println("Lock value is "+lock);
-							int len = lock.length();
-		
-							//computing the key and sending...
-							String key  = ""+(char)(lock.charAt(0) ^ lock.charAt(len-1) ^ lock.charAt(len-2) ^ 5);
-							for (int i = 1; i < len; i++){
-								key += lock.charAt(i) ^ lock.charAt(i-1);
-							}
-							char[] newchars = new char[len];
-							for (int i = 0; i < len; i++){
-								char x = (char)((key.charAt(i) >> 4) & 0x0F0F0F0F);
-								char y = (char)((key.charAt(i) & 0x0F0F0F0F) << 4);
-								newchars[i] = (char)(x | y);
-							}
-							key = Controller.sanitizeLockKey(String.valueOf(newchars),0);
-							System.err.println("Sending "+key);
-							sendData("$Key "+key+"|");
-						}
-					};
-					t.start();
-					System.err.println("Other client connected...");
-					t.join();
-					System.err.println("Controller exiting...");
+					retrieveFilelist(user);
 				}
 			}
 		}
+	}
+	/*
+
+	Method for retrieving filelist from client
+	@args Username
+	*/
+	public void retrieveFilelist(String user){
+		//active client
+		ServerSocket s = new ServerSocket(0);
+		int clientport = s.getLocalPort();
+		String clientip = "127.0.0.1";
+		sendData("$ConnectToMe "+user+" "+clientip+":"+clientport+"|");
+		String connectclientResponse = getResponse();
+		final Socket clientSocket = s.accept();
+		s.close();
+		//handling client connection
+		Thread t = new Thread(){
+			Scanner in;
+			InputStream in2;
+			OutputStream out;
+			String mynick = nick;
+			public void run(){
+				try{
+					
+					LinkedList<String> vals = new LinkedList<String>();
+					in2 = clientSocket.getInputStream();
+					in = new Scanner(in2);
+					in.useDelimiter("\\|");
+					out = clientSocket.getOutputStream();
+					//retrieve other client's nick
+					String clientnick = getResponse();
+					//send mynick
+					sendData("$MyNick "+nick+"|");
+					//sending mylock
+					sendData("$Lock EXTENDEDPROTOCOL"+getKey()+" Pk=Volkano"+version+"ABCABC|");
+					//reading lock
+					String lockclient = getResponse();
+					//sending stuff supported
+					sendData("$Supports MiniSlots XmlBZList ADCGet TTHL TTHF ZLIG|");
+					//notifying that client wants to download
+					sendData("$Direction Download "+randInt(1,32767)+"|");
+					//sending key
+					getLockSendKey(lockclient);
+					//receive stuff supported by other client
+					String clientsupport = getResponse();
+					String clientdirection = getResponse();
+					//receiving  key response from other client
+					String clientkey = getResponse();
+					//request file list
+					sendData("$ADCGET file files.xml 0 -1|");
+					String adcresponse = getResponse();
+					System.err.println("adcresponse is "+adcresponse);
+					int filesize = Integer.parseInt(adcresponse.split(" ")[4]);		
+					System.err.println("filesize: "+filesize);
+
+					in.useDelimiter("</FileListing>");
+					String filelist = in.next();
+					System.err.println("filelist: "+filelist);
+					
+				}catch(Exception e){
+					//gracefully fail
+					e.printStackTrace();
+				}
+			}
+			private String getResponse() throws IOException{
+				return in.next();
+			}
+			private void sendData(String data) throws IOException{
+				out.write(data.getBytes());
+				out.flush();
+			}
+			private void getLockSendKey(String item) throws IOException{
+				String[] values = item.split(" ");
+				String lock = Controller.sanitizeLockKey(values[1],1);
+				System.err.println("Lock value is "+lock);
+				int len = lock.length();
+
+				//computing the key and sending...
+				String key  = ""+(char)(lock.charAt(0) ^ lock.charAt(len-1) ^ lock.charAt(len-2) ^ 5);
+				for (int i = 1; i < len; i++){
+					key += lock.charAt(i) ^ lock.charAt(i-1);
+				}
+				char[] newchars = new char[len];
+				for (int i = 0; i < len; i++){
+					char x = (char)((key.charAt(i) >> 4) & 0x0F0F0F0F);
+					char y = (char)((key.charAt(i) & 0x0F0F0F0F) << 4);
+					newchars[i] = (char)(x | y);
+				}
+				key = Controller.sanitizeLockKey(String.valueOf(newchars),0);
+				System.err.println("Sending "+key);
+				sendData("$Key "+key+"|");
+			}
+		};
+		t.start();
+		System.err.println("Other client connected...");
+		t.join();
+		System.err.println("Controller exiting...");
 	}
 	/*
 
@@ -360,4 +360,17 @@ public class Controller{
 	public int randInt(int min, int max){
 		return min + (int)(Math.random() * ((max - min) + 1));
 	}
+
+	/*
+
+
+								in.useDelimiter("\\|");
+								System.err.println("Downloading file 46GU5HFDLWBRNCLPXYAWMGS6JASDKTDOEUK5VXQ");
+								sendData("$ADCGET file TTH/46GU5HFDLWBRNCLPXYAWMGS6JASDKTDOEUK5VXQ 0 -1|");
+								String adcresponseX = getResponse();
+								System.err.println("adcresponse is "+adcresponseX);
+								int filesizeX = Integer.parseInt(adcresponseX.split(" ")[4]);		
+								System.err.println("filesize: "+filesizeX);
+
+	*/
 }
