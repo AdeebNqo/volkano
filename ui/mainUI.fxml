@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.paint.*?>
+
+<AnchorPane id="AnchorPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns:fx="http://javafx.com/fxml">
+  <children>
+    <BorderPane layoutX="14.0" layoutY="14.0" prefHeight="372.0000999999975" prefWidth="579.0">
+      <center>
+        <TilePane prefHeight="373.0" prefWidth="398.0" />
+      </center>
+      <left>
+        <ListView prefHeight="330.0" prefWidth="181.0" />
+      </left>
+      <top>
+        <HBox prefHeight="43.0" prefWidth="579.0">
+          <children>
+            <TextField prefWidth="181.0" />
+          </children>
+        </HBox>
+      </top>
+    </BorderPane>
+  </children>
+</AnchorPane>

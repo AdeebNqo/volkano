@@ -8,7 +8,18 @@ import ui.SearchBox;
 import javax.swing.JFrame;
 import javax.swing.ImageIcon;
 import java.awt.BorderLayout;
-public class Driver{
+import javafx.application.Application;
+import javafx.stage.Stage;
+import javafx.scene.layout.Pane;
+import javafx.scene.Scene;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
+import javafx.scene.layout.StackPane;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import javafx.scene.Parent;
+
+public class Driver extends Application{
 	public static void main(String[] args){
 		try{
 			Controller con = new Controller("127.0.0.1",1200);
