@@ -133,10 +133,18 @@ public class Controller{
 	}
 	/*
 
+	Method for handling all broadcasts from hub
+	*/
+	public void handleBroadcast(){
+		String msg = getResponse();
+		System.err.println("hub says "+msg);
+	}
+	/*
+
 	Method for retrieving filelist from client
 	@args Username
 	*/
-	public void retrieveFilelist(String user){
+	public void retrieveFilelist(String user) throws InterruptedException, IOException{
 		//active client
 		ServerSocket s = new ServerSocket(0);
 		int clientport = s.getLocalPort();
@@ -187,7 +195,7 @@ public class Controller{
 
 					in.useDelimiter("</FileListing>");
 					String filelist = in.next();
-					System.err.println("filelist: "+filelist);
+					System.err.println("Done retreving filelist.");
 					
 				}catch(Exception e){
 					//gracefully fail
@@ -224,9 +232,7 @@ public class Controller{
 			}
 		};
 		t.start();
-		System.err.println("Other client connected...");
 		t.join();
-		System.err.println("Controller exiting...");
 	}
 	/*
 
@@ -235,7 +241,7 @@ public class Controller{
 	*/
 	private String getResponse() throws IOException{
 		try{
-			Thread.sleep(30000);
+			Thread.sleep(20000);
 		}catch(Exception e){
 			//silently fail
 		}

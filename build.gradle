@@ -3,4 +3,5 @@ apply plugin: 'java'
 dependencies {
 	compile files('./build/libs/commons-compress-1.8.jar')
 	compile files('/usr/local/java/jre1.7.0_07/lib/jfxrt.jar')
+	compile files('./build/libs/jmf.jar')
 }
