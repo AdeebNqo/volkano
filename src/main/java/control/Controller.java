@@ -13,6 +13,7 @@ Class to controll access to dc hub and stream videos
 package control;
 
 import java.net.Socket;
+import java.awt.Component;
 import java.io.InputStreamReader;
 import java.net.UnknownHostException;
 import java.io.IOException;
@@ -29,8 +30,9 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.File;
+import java.util.HashMap;
 
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import com.xuggle.xuggler.IContainer;
 
 public class Controller{
 	
@@ -50,6 +52,8 @@ public class Controller{
 	private LinkedList<String> NickList;
 
 	private boolean passiveClient = false; //determines if client active or passive
+
+	private HashMap<String, Socket> connectionCache = new HashMap<String, Socket>();
 
 	public Controller(String ip, int port){
 		IP = ip; this.port = port;
@@ -135,7 +139,7 @@ public class Controller{
 
 	Method for handling all broadcasts from hub
 	*/
-	public void handleBroadcast(){
+	public void handleBroadcast() throws IOException{
 		String msg = getResponse();
 		System.err.println("hub says "+msg);
 	}
@@ -147,12 +151,16 @@ public class Controller{
 	public void retrieveFilelist(String user) throws InterruptedException, IOException{
 		//active client
 		ServerSocket s = new ServerSocket(0);
-		int clientport = s.getLocalPort();
-		String clientip = "127.0.0.1";
+		final int clientport = s.getLocalPort();
+		final String clientip = "127.0.0.1";
 		sendData("$ConnectToMe "+user+" "+clientip+":"+clientport+"|");
 		String connectclientResponse = getResponse();
 		final Socket clientSocket = s.accept();
 		s.close();
+		
+		//cache socket
+		connectionCache.put(user, clientSocket);
+
 		//handling client connection
 		Thread t = new Thread(){
 			Scanner in;
@@ -366,17 +374,29 @@ public class Controller{
 	public int randInt(int min, int max){
 		return min + (int)(Math.random() * ((max - min) + 1));
 	}
-
 	/*
-
-
-								in.useDelimiter("\\|");
-								System.err.println("Downloading file 46GU5HFDLWBRNCLPXYAWMGS6JASDKTDOEUK5VXQ");
-								sendData("$ADCGET file TTH/46GU5HFDLWBRNCLPXYAWMGS6JASDKTDOEUK5VXQ 0 -1|");
-								String adcresponseX = getResponse();
-								System.err.println("adcresponse is "+adcresponseX);
-								int filesizeX = Integer.parseInt(adcresponseX.split(" ")[4]);		
-								System.err.println("filesize: "+filesizeX);
-
+	Method for streaming file identified by tth, from user on
+	the other side of provided connection.
 	*/
+	public void streamFile(Socket connection, String tth) throws IOException{
+		//get channels for receiving and sending data to users
+		OutputStream out = connection.getOutputStream();
+		InputStream in = connection.getInputStream();
+
+		//request file
+		out.write(("$ADCGET file TTH/"+tth+" 0 -1|").getBytes());
+		int responseChar  = 0;
+		int barval = (int) ('|');
+		while(responseChar!=barval){
+			responseChar = in.read();
+		}
+		//streaming video
+		IContainer container = IContainer.make();
+		if (container.open(in, IContainer.Type.READ)>0){
+			int numstreams = container.getNumStreams();
+		}
+		else{
+			//could not process stream
+		}
+	}
 }
