@@ -39,6 +39,7 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 
 8. Xuggle demos https://github.com/artclarke/xuggle-xuggler/blob/master/src/com/xuggle/xuggler/demos
 
+9. Apache lucene  tutorial http://lucene.apache.org/core/4_8_0/demo/overview-summary.html#overview_description
 #Updates
 
 09 Tshazimpuzi 2014: Abandoned python, cannot recieve files using python. Moving to use java
