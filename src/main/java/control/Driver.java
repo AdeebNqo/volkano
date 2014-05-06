@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.io.IOException;
 
+import com.xuggle.xuggler.IContainer;
+
 public class Driver{
 	public static void main(String[] args){
 		final Controller con = new Controller("127.0.0.1",1200);
@@ -39,5 +41,15 @@ public class Driver{
 				frame.add(box, BorderLayout.NORTH);
 			}
 		});
+	}
+	public static void streamFile(InputStream in){
+		//streaming video
+		IContainer container = IContainer.make();
+		if (container.open(in, IContainer.Type.READ)>0){
+			int numstreams = container.getNumStreams();
+		}
+		else{
+			//could not process stream
+		}
 	}
 }

@@ -32,7 +32,6 @@ import java.io.FileOutputStream;
 import java.io.File;
 import java.util.HashMap;
 
-import com.xuggle.xuggler.IContainer;
 
 public class Controller{
 	
@@ -378,7 +377,7 @@ public class Controller{
 	Method for streaming file identified by tth, from user on
 	the other side of provided connection.
 	*/
-	public void streamFile(Socket connection, String tth) throws IOException{
+	public InputStream streamFile(Socket connection, String tth) throws IOException{
 		//get channels for receiving and sending data to users
 		OutputStream out = connection.getOutputStream();
 		InputStream in = connection.getInputStream();
@@ -390,13 +389,7 @@ public class Controller{
 		while(responseChar!=barval){
 			responseChar = in.read();
 		}
-		//streaming video
-		IContainer container = IContainer.make();
-		if (container.open(in, IContainer.Type.READ)>0){
-			int numstreams = container.getNumStreams();
-		}
-		else{
-			//could not process stream
-		}
+		//return stream to play
+		return in;
 	}
 }

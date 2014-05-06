@@ -16,7 +16,7 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 - [X] Get list of files (saving bz2 files sent in binary)
 - [ ] Cleanup src code -- remove debug print statements, etc
 - [ ] Index files in search server
-- [X] design ui
+- [x] design ui
 - [ ] Implement UI
 - [ ] retrieve metadata
 - [ ] Connect UI and streaming
@@ -34,6 +34,10 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 5. To download a file which is listed in the FileListing, one can use $ADCGET. However, do not use the filename. Rather use `TTH/<file tth here>`
 
 6. Cannot play in-memory bytes, might have to consider using RTP http://www.cs.odu.edu/~cs778/spring04/lectures/jmfsolutions/examplesindex.html#swing
+
+7. Discussion on playing data from inputstream, xuggle. https://groups.google.com/forum/#!topic/xuggler-users/fOOjmIMK4FY
+
+8. Xuggle demos https://github.com/artclarke/xuggle-xuggler/blob/master/src/com/xuggle/xuggler/demos
 
 #Updates
 
