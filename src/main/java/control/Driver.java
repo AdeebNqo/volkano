@@ -28,6 +28,7 @@ import com.xuggle.xuggler.IPacket;
 import com.xuggle.xuggler.IVideoResampler;
 import com.xuggle.xuggler.IStream;
 import com.xuggle.xuggler.ICodec;
+import com.xuggle.xuggler.IContainerFormat;
 
 public class Driver{
 	public static void main(String[] args){
@@ -56,14 +57,15 @@ public class Driver{
 			}
 		});
 	}
-	public static void streamFile(InputStream in, JLabel videostage){
+	public static void streamFile(InputStream in, JLabel videostage) throws Exception{
 		//streaming video
 		IContainer container = IContainer.make();
-		if (container.open(in, IContainer.Type.READ)>0){
+		IContainerFormat containerFormat_live = IContainerFormat.make();
+		if (container.open(in, containerFormat_live)>0){
 			int numstreams = container.getNumStreams();
 			boolean video = false;
-			int streamnum;
-			IStreamCoder decoder;
+			int streamnum = -1;
+			IStreamCoder decoder = null;
 			for (int i=0; i<numstreams; ++i){
 				IStream stream = container.getStream(i);
 				//get decoder
