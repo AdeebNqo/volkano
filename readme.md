@@ -11,11 +11,11 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 
 #TODO
 
-- [X] Connect to a nmdc hub
-- [X] Setup client-client handshake
-- [X] Get list of files (saving bz2 files sent in binary)
+- [x] Connect to a nmdc hub
+- [x] Setup client-client handshake
+- [x] Get list of files (saving bz2 files sent in binary)
 - [ ] Cleanup src code -- remove debug print statements, etc
-- [ ] Index files in search server
+- [ ] Setup search server
 - [x] design ui
 - [ ] Implement UI
 - [ ] retrieve metadata
