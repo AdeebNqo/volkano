@@ -31,7 +31,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.File;
 import java.util.HashMap;
+import java.io.StringReader;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.NamedNodeMap;
 
 public class Controller{
 	
@@ -135,6 +141,37 @@ public class Controller{
 		}
 	}
 	/*
+	
+	Method for parsing file lists
+	*/
+	public void parseFileList(String xml){
+		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+		DocumentBuilder builder = factory.newDocumentBuilder();
+		org.xml.sax.InputSource is = new org.xml.sax.InputSource(new StringReader(xml));
+		org.w3c.dom.Document doc = builder.parse(is);
+		doc.getDocumentElement().normalize();
+		if (doc.hasChildNodes()) {
+			reallyparseFilelist(doc.getChildNodes());
+		}
+	}
+	public void reallyparseFilelist(NodeList nodes){
+		for (Node node: nodes){
+			if (tempNode.hasAttributes()) {
+				//get attributes names and values
+				NamedNodeMap nodeMap = tempNode.getAttributes();
+				for (int i = 0; i < nodeMap.getLength(); i++) {
+					Node node = nodeMap.item(i);
+					System.out.println("attr name : " + node.getNodeName());
+					System.out.println("attr value : " + node.getNodeValue());
+				}
+			}
+			if (node.hasChildNodes()){
+				reallyparseFilelist(node.getChildNodes());
+			}
+		}
+	}
+	
+	/*
 
 	Method for handling all broadcasts from hub
 	*/
@@ -203,6 +240,7 @@ public class Controller{
 					in.useDelimiter("</FileListing>");
 					String filelist = in.next();
 					System.err.println("Done retreving filelist.");
+					parseFileList(filelist);
 					
 				}catch(Exception e){
 					//gracefully fail

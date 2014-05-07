@@ -13,7 +13,7 @@ Currently testing it on
     
 Please note that there is a 30 second delay in retrieving response from hub so it might be a little slow
 
-#TODO
+##TODO
 
 - [x] Connect to a nmdc hub
 - [x] Setup client-client handshake
@@ -25,7 +25,7 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 - [ ] retrieve metadata
 - [ ] Connect UI and streaming
 
-#Notes
+##Notes
 
 1. source of subtitles http://imdbpy.sourceforge.net/
 
@@ -43,7 +43,13 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 
 8. Xuggle demos https://github.com/artclarke/xuggle-xuggler/blob/master/src/com/xuggle/xuggler/demos
 
-9. Apache lucene  tutorial http://lucene.apache.org/core/4_8_0/demo/overview-summary.html#overview_description
-#Updates
+9. Apache lucene  tutorial http://www.lucenetutorial.com/lucene-in-5-minutes.html
+
+##Depends
+
+	- xuggle (http://www.xuggle.com)
+	- apache lucene (http://lucene.apache.org/)
+
+##Updates
 
 09 Tshazimpuzi 2014: Abandoned python, cannot recieve files using python. Moving to use java
