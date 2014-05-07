@@ -1,6 +1,10 @@
 #Volkano
 
-Application for streaming videos from a nmdc hub. Does not support the adc protocol.
+Application for streaming videos from a nmdc hub. Currently does not support the adc protocol.
+Most direct connect protocol clients are centered around users, that is, they provide you with a list of users.
+Volkano is different, this application is about files. It is about the exploration of video, watching other people's videos
+without waiting for long downloads. This application is an attempt to provide a youtube-like platform on top
+of the direct connect protocol.
 
 Currently testing it on
 

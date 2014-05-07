@@ -2,3 +2,4 @@ analysis/
 *.pyc
 build/
 .gladle/
+*~
