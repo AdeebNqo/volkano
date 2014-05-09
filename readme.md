@@ -24,6 +24,8 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 - [ ] Implement UI
 - [ ] retrieve metadata
 - [ ] Connect UI and streaming
+- [ ] Make streaming totally independent of UI, should be easy to change UI
+- [ ] Remove wait()'s, improvide responsiveness
 
 ##Notes
 

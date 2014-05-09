@@ -38,6 +38,8 @@ import javax.xml.parsers.DocumentBuilder;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.NamedNodeMap;
+import javax.xml.parsers.ParserConfigurationException;
+import org.xml.sax.SAXException;
 
 public class Controller{
 	
@@ -144,7 +146,8 @@ public class Controller{
 	
 	Method for parsing file lists
 	*/
-	public void parseFileList(String xml){
+	public void parseFileList(String xml) throws ParserConfigurationException, SAXException, IOException{
+		System.out.println(xml);
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		org.xml.sax.InputSource is = new org.xml.sax.InputSource(new StringReader(xml));
@@ -155,19 +158,23 @@ public class Controller{
 		}
 	}
 	public void reallyparseFilelist(NodeList nodes){
-		for (Node node: nodes){
+		int numnodes = nodes.getLength();
+		for (int j=0;j<numnodes;++j){
+			System.err.println("-------------------------------------------");
+			Node tempNode = nodes.item(j);
 			if (tempNode.hasAttributes()) {
 				//get attributes names and values
 				NamedNodeMap nodeMap = tempNode.getAttributes();
 				for (int i = 0; i < nodeMap.getLength(); i++) {
 					Node node = nodeMap.item(i);
-					System.out.println("attr name : " + node.getNodeName());
-					System.out.println("attr value : " + node.getNodeValue());
+					System.err.println("attr name : " + node.getNodeName());
+					System.err.println("attr value : " + node.getNodeValue());
 				}
 			}
-			if (node.hasChildNodes()){
-				reallyparseFilelist(node.getChildNodes());
+			if (tempNode.hasChildNodes()){
+				reallyparseFilelist(tempNode.getChildNodes());
 			}
+			System.err.println("-------------------------------------------");
 		}
 	}
 	
@@ -239,6 +246,7 @@ public class Controller{
 
 					in.useDelimiter("</FileListing>");
 					String filelist = in.next();
+					filelist = filelist.substring(1).replaceAll("\\s+$", "")+"\n</FileListing>";
 					System.err.println("Done retreving filelist.");
 					parseFileList(filelist);
 					
