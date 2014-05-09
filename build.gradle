@@ -2,4 +2,6 @@ apply plugin: 'java'
 
 dependencies {
 	compile files('./build/libs/xuggle-xuggler-5.4.jar')
+	compile files('./build/libs/lucene-core-4.8.0.jar')
+	compile files('./build/libs/lucene-analyzers-common-4.8.0.jar')
 }

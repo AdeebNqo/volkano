@@ -1,10 +1,8 @@
 #Volkano
 
-Application for streaming videos from a nmdc hub. Currently does not support the adc protocol.
-Most direct connect protocol clients are centered around users, that is, they provide you with a list of users.
-Volkano is different, this application is about files. It is about the exploration of video, watching other people's videos
-without waiting for long downloads. This application is an attempt to provide a youtube-like platform on top
-of the direct connect protocol.
+Application for streaming videos from a direct connect hub. Most direct connect clients are centered around users, that is, they provide you with a list of users. Volkano is different, this application is about files. I am trying to provide a client for people who do not care about socialising with other connected users, the focus is on the shared content. It is about the exploration of video; watching other people's videos
+without waiting for slow downloads. This application is an attempt to provide a youtube-like platform on top
+of the direct connect protocol. It currently does not support the adc protocol.
 
 Currently testing it on
 
@@ -19,11 +17,12 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 - [x] Setup client-client handshake
 - [x] Get list of files (saving bz2 files sent in binary)
 - [ ] Cleanup src code -- remove debug print statements, etc
-- [ ] Setup search server
 - [x] design ui
 - [ ] Implement UI
 - [ ] retrieve metadata
 - [ ] Connect UI and streaming
+- [x] index file lists
+- [ ] add search support
 - [ ] Make streaming totally independent of UI, should be easy to change UI
 - [ ] Remove wait()'s, improvide responsiveness
 

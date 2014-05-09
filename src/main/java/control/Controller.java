@@ -41,6 +41,16 @@ import org.w3c.dom.NamedNodeMap;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
 
+import org.apache.lucene.store.Directory;
+import org.apache.lucene.store.RAMDirectory;
+import org.apache.lucene.util.Version;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
+import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.Field;
+
 public class Controller{
 	
 	final private String nick="volkano001";
@@ -62,8 +72,19 @@ public class Controller{
 
 	private HashMap<String, Socket> connectionCache = new HashMap<String, Socket>();
 
-	public Controller(String ip, int port){
+	//lucene vars
+	StandardAnalyzer analyzer;
+	Directory index;
+	IndexWriterConfig config;
+	IndexWriter w;
+
+	public Controller(String ip, int port) throws IOException{
 		IP = ip; this.port = port;
+
+		analyzer = new StandardAnalyzer(Version.LUCENE_40);
+		index = new RAMDirectory();
+		config = new IndexWriterConfig(Version.LUCENE_40, analyzer);
+		w = new IndexWriter(index, config);
 	}
 	/*
 	
@@ -157,19 +178,22 @@ public class Controller{
 			reallyparseFilelist(doc.getChildNodes());
 		}
 	}
-	public void reallyparseFilelist(NodeList nodes){
+	public void reallyparseFilelist(NodeList nodes) throws IOException{
 		int numnodes = nodes.getLength();
 		for (int j=0;j<numnodes;++j){
 			System.err.println("-------------------------------------------");
 			Node tempNode = nodes.item(j);
 			if (tempNode.hasAttributes()) {
+				Document doc = new Document();//doc to be indexed in lucene
+
 				//get attributes names and values
 				NamedNodeMap nodeMap = tempNode.getAttributes();
 				for (int i = 0; i < nodeMap.getLength(); i++) {
 					Node node = nodeMap.item(i);
-					System.err.println("attr name : " + node.getNodeName());
-					System.err.println("attr value : " + node.getNodeValue());
+					//adding attribute and it's value to the doc object
+					doc.add(new TextField(node.getNodeName(), node.getNodeValue(), Field.Store.YES));
 				}
+				w.addDocument(doc);
 			}
 			if (tempNode.hasChildNodes()){
 				reallyparseFilelist(tempNode.getChildNodes());

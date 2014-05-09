@@ -32,18 +32,21 @@ import com.xuggle.xuggler.IContainerFormat;
 
 public class Driver{
 	public static void main(String[] args){
-		final Controller con = new Controller("127.0.0.1",1200);
-		(new Thread(){
-			public void run(){
-				try{
-					con.connect();
-				}catch(Exception e){
-					e.printStackTrace();
-					System.exit(0);
+		try{
+			final Controller con = new Controller("127.0.0.1",1200);
+			(new Thread(){
+				public void run(){
+					try{
+						con.connect();
+					}catch(Exception e){
+						e.printStackTrace();
+						System.exit(0);
+					}
 				}
-			}
-		}).start();
-
+			}).start();
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 		java.awt.EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				JFrame frame = new JFrame();
