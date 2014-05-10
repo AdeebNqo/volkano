@@ -187,17 +187,17 @@ public class Controller{
 	
 	Method for parsing file lists
 	*/
-	public void parseFileList(String xml) throws ParserConfigurationException, SAXException, IOException{
+	public void parseFileList(String xml, String user) throws ParserConfigurationException, SAXException, IOException{
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		org.xml.sax.InputSource is = new org.xml.sax.InputSource(new StringReader(xml));
 		org.w3c.dom.Document doc = builder.parse(is);
 		doc.getDocumentElement().normalize();
 		if (doc.hasChildNodes()) {
-			reallyparseFilelist(doc.getChildNodes());
+			reallyparseFilelist(doc.getChildNodes(), user);
 		}
 	}
-	public void reallyparseFilelist(NodeList nodes) throws IOException{
+	public void reallyparseFilelist(NodeList nodes, String user) throws IOException{
 		int numnodes = nodes.getLength();
 		for (int j=0;j<numnodes;++j){
 			Node tempNode = nodes.item(j);
@@ -206,6 +206,7 @@ public class Controller{
 
 				//get attributes names and values
 				NamedNodeMap nodeMap = tempNode.getAttributes();
+				doc.add(new TextField("User",user, Field.Store.YES));
 				for (int i = 0; i < nodeMap.getLength(); i++) {
 					Node node = nodeMap.item(i);
 					//adding attribute and it's value to the doc object
@@ -216,7 +217,7 @@ public class Controller{
 				w.addDocument(doc);
 			}
 			if (tempNode.hasChildNodes()){
-				reallyparseFilelist(tempNode.getChildNodes());
+				reallyparseFilelist(tempNode.getChildNodes(), user);
 			}
 		}
 	}
@@ -254,7 +255,7 @@ public class Controller{
 	Method for retrieving filelist from client
 	@args Username
 	*/
-	public void retrieveFilelist(String user) throws InterruptedException, IOException{
+	public void retrieveFilelist(final String user) throws InterruptedException, IOException{
 		//active client
 		ServerSocket s = new ServerSocket(0);
 		final int clientport = s.getLocalPort();
@@ -311,7 +312,7 @@ public class Controller{
 					String filelist = in.next();
 					filelist = filelist.substring(1).replaceAll("\\s+$", "")+"\n</FileListing>";
 					System.err.println("Done retreving filelist.");
-					parseFileList(filelist);
+					parseFileList(filelist,user);
 					
 				}catch(Exception e){
 					//gracefully fail
@@ -483,10 +484,16 @@ public class Controller{
 		return min + (int)(Math.random() * ((max - min) + 1));
 	}
 	/*
+	Method for getting socket of user
+	*/
+	public Socket getUserConnection(String username){
+		return connectionCache.get(username);
+	}
+	/*
 	Method for streaming file identified by tth, from user on
 	the other side of provided connection.
 	*/
-	public InputStream streamFile(Socket connection, String tth) throws IOException{
+	public InputStream getStream(Socket connection, String tth) throws IOException{
 		//get channels for receiving and sending data to users
 		OutputStream out = connection.getOutputStream();
 		InputStream in = connection.getInputStream();

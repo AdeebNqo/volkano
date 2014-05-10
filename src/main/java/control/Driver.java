@@ -10,6 +10,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.io.IOException;
+import java.util.Scanner;
 
 import java.awt.BorderLayout;
 import java.awt.image.BufferedImage;
@@ -34,7 +35,9 @@ import org.apache.lucene.document.Document;
 
 public class Driver{
 	public static void main(String[] args){
+		final JLabel videostage = new JLabel();
 		try{
+			final Scanner input = new Scanner(System.in);
 			final Controller con = new Controller("127.0.0.1",1200);
 			(new Thread(){
 				public void run(){
@@ -46,6 +49,10 @@ public class Driver{
 							System.err.println(i+" "+doc.get("Name")+" "+doc.get("TTH"));
 							++i;
 						}
+						int option = input.nextInt();
+						Document chosendoc = docs[option];
+						InputStream filestream = con.getStream(con.getUserConnection(chosendoc.get("User")), chosendoc.get("TTH"));
+						streamFile(filestream, videostage);
 					}catch(Exception e){
 						e.printStackTrace();
 						System.exit(0);
@@ -65,6 +72,7 @@ public class Driver{
 				SearchBox box = new SearchBox(img);
 				frame.setLayout(new BorderLayout());
 				frame.add(box, BorderLayout.NORTH);
+				frame.add(videostage, BorderLayout.CENTER);
 			}
 		});
 	}
@@ -88,6 +96,7 @@ public class Driver{
 					break;
 				}
 			}
+			System.err.println("video found: "+video);
 			//trying to open and read video from stream
 			if (decoder.open() >= 0){
 				IVideoResampler resampler = null;
@@ -168,6 +177,7 @@ public class Driver{
 											{
 												// we might get this when the user closes the dialog box, so
 												// just return from the method.
+												e.printStackTrace();
 												return;
 											}
 
@@ -185,10 +195,12 @@ public class Driver{
 			}
 			else{
 				//decoding video failed.
+				System.err.println("decoding failed");
 			}
 		}
 		else{
 			//could not process stream
+			System.err.println("could not process stream");
 		}
 	}
 }
