@@ -30,6 +30,8 @@ import com.xuggle.xuggler.IStream;
 import com.xuggle.xuggler.ICodec;
 import com.xuggle.xuggler.IContainerFormat;
 
+import org.apache.lucene.document.Document;
+
 public class Driver{
 	public static void main(String[] args){
 		try{
@@ -38,6 +40,12 @@ public class Driver{
 				public void run(){
 					try{
 						con.connect();
+						Document[] docs = con.search(".avi");
+						int i =0;
+						for (Document doc:docs){
+							System.err.println(i+" "+doc.get("Name")+" "+doc.get("TTH"));
+							++i;
+						}
 					}catch(Exception e){
 						e.printStackTrace();
 						System.exit(0);

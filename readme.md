@@ -22,7 +22,7 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 - [ ] retrieve metadata
 - [ ] Connect UI and streaming
 - [x] index file lists
-- [ ] add search support
+- [x] add search support
 - [ ] Make streaming totally independent of UI, should be easy to change UI
 - [ ] Remove wait()'s, improvide responsiveness
 

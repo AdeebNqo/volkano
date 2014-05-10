@@ -188,7 +188,6 @@ public class Controller{
 	Method for parsing file lists
 	*/
 	public void parseFileList(String xml) throws ParserConfigurationException, SAXException, IOException{
-		System.out.println(xml);
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		org.xml.sax.InputSource is = new org.xml.sax.InputSource(new StringReader(xml));
@@ -201,7 +200,6 @@ public class Controller{
 	public void reallyparseFilelist(NodeList nodes) throws IOException{
 		int numnodes = nodes.getLength();
 		for (int j=0;j<numnodes;++j){
-			System.err.println("-------------------------------------------");
 			Node tempNode = nodes.item(j);
 			if (tempNode.hasAttributes()) {
 				Document doc = new Document();//doc to be indexed in lucene
@@ -213,7 +211,6 @@ public class Controller{
 					//adding attribute and it's value to the doc object
 					String attributename = node.getNodeName();
 					String attributevalue = node.getNodeValue();
-					System.err.println(attributename);//debug
 					doc.add(new TextField(attributename, attributevalue, Field.Store.YES));
 				}
 				w.addDocument(doc);
@@ -221,7 +218,6 @@ public class Controller{
 			if (tempNode.hasChildNodes()){
 				reallyparseFilelist(tempNode.getChildNodes());
 			}
-			System.err.println("-------------------------------------------");
 		}
 	}
 	/*
@@ -230,8 +226,9 @@ public class Controller{
 	
 	*/
 	public Document[] search(String video) throws ParseException, IOException{
-		Query q = new QueryParser(Version.LUCENE_40, "title", analyzer).parse(video);
+		Query q = new QueryParser(Version.LUCENE_40, "Name", analyzer).parse(video);
 		int hitsPerPage = 5;
+		w.commit();
 		reader = IndexReader.open(index);
 		searcher = new IndexSearcher(reader);
 		TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage, true);
