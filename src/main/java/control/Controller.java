@@ -50,6 +50,13 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.TextField;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TopScoreDocCollector;
+import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.queryparser.classic.ParseException;
 
 public class Controller{
 	
@@ -77,6 +84,8 @@ public class Controller{
 	Directory index;
 	IndexWriterConfig config;
 	IndexWriter w;
+	IndexReader reader;
+	IndexSearcher searcher;
 
 	public Controller(String ip, int port) throws IOException{
 		IP = ip; this.port = port;
@@ -162,6 +171,17 @@ public class Controller{
 				}
 			}
 		}
+	
+		//thread for handling hub broadcasts
+		(new Thread(){
+			public void run(){
+				try{
+					handleBroadcast();
+				}catch(IOException e){
+					e.printStackTrace();
+				}
+			}
+		}).start();
 	}
 	/*
 	
@@ -191,7 +211,10 @@ public class Controller{
 				for (int i = 0; i < nodeMap.getLength(); i++) {
 					Node node = nodeMap.item(i);
 					//adding attribute and it's value to the doc object
-					doc.add(new TextField(node.getNodeName(), node.getNodeValue(), Field.Store.YES));
+					String attributename = node.getNodeName();
+					String attributevalue = node.getNodeValue();
+					System.err.println(attributename);//debug
+					doc.add(new TextField(attributename, attributevalue, Field.Store.YES));
 				}
 				w.addDocument(doc);
 			}
@@ -200,6 +223,25 @@ public class Controller{
 			}
 			System.err.println("-------------------------------------------");
 		}
+	}
+	/*
+	
+	Method for searching for video
+	
+	*/
+	public Document[] search(String video) throws ParseException, IOException{
+		Query q = new QueryParser(Version.LUCENE_40, "title", analyzer).parse(video);
+		int hitsPerPage = 5;
+		reader = IndexReader.open(index);
+		searcher = new IndexSearcher(reader);
+		TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage, true);
+		searcher.search(q, collector);
+		ScoreDoc[] hits = collector.topDocs().scoreDocs;
+		Document[] docs = new Document[hits.length];		
+		for (int i=0; i<hits.length; ++i){
+			docs[i] = searcher.doc(hits[i].doc);
+		}
+		return docs;
 	}
 	
 	/*
