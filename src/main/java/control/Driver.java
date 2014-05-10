@@ -79,8 +79,8 @@ public class Driver{
 	public static void streamFile(InputStream in, JLabel videostage) throws Exception{
 		//streaming video
 		IContainer container = IContainer.make();
-		IContainerFormat containerFormat_live = IContainerFormat.make();
-		if (container.open(in, containerFormat_live)>0){
+		//IContainerFormat containerFormat_live = IContainerFormat.make();
+		if (container.open(in,null)>=0){
 			int numstreams = container.getNumStreams();
 			boolean video = false;
 			int streamnum = -1;
@@ -96,12 +96,12 @@ public class Driver{
 					break;
 				}
 			}
-			System.err.println("video found: "+video);
 			//trying to open and read video from stream
 			if (decoder.open() >= 0){
 				IVideoResampler resampler = null;
 				IStreamCoder videoCoder = decoder; //too tired to clean this up
-				if (videoCoder.getPixelType() != IPixelFormat.Type.BGR24){
+				System.err.println("stream pixel type: "+videoCoder.getPixelType());
+				/*if (videoCoder.getPixelType() != IPixelFormat.Type.BGR24){
 					// if this stream is not in BGR24, we're going to need to
 					// convert it.
 					resampler = IVideoResampler.make(videoCoder.getWidth(),
@@ -112,13 +112,14 @@ public class Driver{
 					if (resampler==null){
 						throw new RuntimeException("could not create color space resampler.");
 					}
-				}
+				}*/
 			
 				//inspective packets in container
 				IPacket packet = IPacket.make();
 				long firstTimestampInStream = Global.NO_PTS;
 				long systemClockStartTime = 0;
 				for (;container.readNextPacket(packet) >= 0;){
+					System.err.println("processing packet");
 					//making sure packet belongs to video stream
 					if (packet.getStreamIndex()==streamnum){
 						IVideoPicture picture = IVideoPicture.make(videoCoder.getPixelType(),
@@ -192,6 +193,7 @@ public class Driver{
 						}
 					}
 				}
+				System.err.println("after packet processing.");
 			}
 			else{
 				//decoding video failed.
