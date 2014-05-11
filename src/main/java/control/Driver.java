@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.net.UnknownHostException;
 import java.io.IOException;
 import java.util.Scanner;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 
 import java.awt.BorderLayout;
 import java.awt.image.BufferedImage;
@@ -76,11 +78,29 @@ public class Driver{
 			}
 		});
 	}
-	public static void streamFile(InputStream in, JLabel videostage) throws Exception{
+	public static void streamFile(final InputStream in, JLabel videostage) throws Exception{
+		System.err.println("streamFile called!");
+		final String filename = "/tmp/test.avi";
+		(new Thread(){
+			public void run(){
+				try{
+					OutputStream out = new FileOutputStream(filename);
+					int byt;		
+					while((byt = in.read())>=0){
+						out.write(byt);
+					}
+					System.err.println("Done downloading file");
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+			}
+		}).start();
+		
+
 		//streaming video
 		IContainer container = IContainer.make();
 		//IContainerFormat containerFormat_live = IContainerFormat.make();
-		if (container.open(in,null)>=0){
+		if (container.open(filename, IContainer.Type.READ, null)>=0){
 			int numstreams = container.getNumStreams();
 			boolean video = false;
 			int streamnum = -1;
@@ -101,7 +121,7 @@ public class Driver{
 				IVideoResampler resampler = null;
 				IStreamCoder videoCoder = decoder; //too tired to clean this up
 				System.err.println("stream pixel type: "+videoCoder.getPixelType());
-				/*if (videoCoder.getPixelType() != IPixelFormat.Type.BGR24){
+				if (videoCoder.getPixelType() != IPixelFormat.Type.BGR24){
 					// if this stream is not in BGR24, we're going to need to
 					// convert it.
 					resampler = IVideoResampler.make(videoCoder.getWidth(),
@@ -112,14 +132,14 @@ public class Driver{
 					if (resampler==null){
 						throw new RuntimeException("could not create color space resampler.");
 					}
-				}*/
+				}
 			
 				//inspective packets in container
 				IPacket packet = IPacket.make();
 				long firstTimestampInStream = Global.NO_PTS;
 				long systemClockStartTime = 0;
-				for (;container.readNextPacket(packet) >= 0;){
-					System.err.println("processing packet");
+				
+				for (; container.readNextPacket(packet)>= 0;){
 					//making sure packet belongs to video stream
 					if (packet.getStreamIndex()==streamnum){
 						IVideoPicture picture = IVideoPicture.make(videoCoder.getPixelType(),
@@ -127,6 +147,7 @@ public class Driver{
 
 						int offset = 0;
 						while(offset < packet.getSize()){
+							System.err.println("while with offset compare packet size.");
 							int bytesDecoded = videoCoder.decodeVideo(picture, packet, offset);
 							if (bytesDecoded < 0){
 								throw new RuntimeException("error decoding video");
@@ -170,6 +191,7 @@ public class Driver{
 										(millisecondsClockTimeSinceStartofVideo +
 										millisecondsTolerance));
 										if (millisecondsToSleep > 0){
+											System.err.println("if with img");
 											try
 											{
 												Thread.sleep(millisecondsToSleep);
