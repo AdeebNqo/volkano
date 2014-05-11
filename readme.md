@@ -46,6 +46,8 @@ Please note that there is a 30 second delay in retrieving response from hub so i
 
 9. Apache lucene  tutorial http://www.lucenetutorial.com/lucene-in-5-minutes.html
 
+10. gstreamer-java playing from inputstream https://code.google.com/p/gstreamer-java/source/browse/trunk/gstreamer-java/src/org/gstreamer/example/InputStreamSrcTest.java?r=315
+
 ##Depends
 
 	- xuggle (http://www.xuggle.com)
