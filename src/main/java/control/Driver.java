@@ -13,6 +13,11 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.io.BufferedInputStream;
 
 import java.awt.BorderLayout;
 import java.awt.image.BufferedImage;
@@ -78,25 +83,22 @@ public class Driver{
 			}
 		});
 	}
-	public static void streamFile(final InputStream in, JLabel videostage) throws Exception{
-		System.err.println("streamFile called!");
-		final String filename = "/tmp/test.avi";
-		(new Thread(){
-			public void run(){
-				try{
-					OutputStream out = new FileOutputStream(filename);
-					int byt;		
-					while((byt = in.read())>=0){
-						out.write(byt);
-					}
-					System.err.println("Done downloading file");
-				}catch(Exception e){
-					e.printStackTrace();
-				}
-			}
-		}).start();
-		
 
+
+	private static boolean getbytes(InputStream srcstream, String outputfile, int numbytes) throws FileNotFoundException,IOException{
+		OutputStream out = new FileOutputStream(outputfile);
+		for(int i=0; i<numbytes; ++i){
+			int byt = srcstream.read();
+			if (byt==-1){
+				break;
+			}
+			out.write(byt);
+		}
+		out.close();
+		System.err.println("done retrieving part of file.");
+		return true;
+	}
+	private static void playbytes(String filename, JLabel videostage){
 		//streaming video
 		IContainer container = IContainer.make();
 		//IContainerFormat containerFormat_live = IContainerFormat.make();
@@ -225,6 +227,45 @@ public class Driver{
 		else{
 			//could not process stream
 			System.err.println("could not process stream");
+		}
+	}
+	public static void streamFile(final InputStream in, JLabel videostage) throws Exception{
+		System.err.println("streamFile called!");
+
+		final int numbytes = 1048576;
+		
+		
+		int byte1=0;
+		int pos  = -1; //value to determine if first time in loop
+		final Names names = new Names();
+
+		while(byte1!=-1){
+			++pos;
+			String filename = names.get(pos);
+			if (pos>3){
+				BufferedInputStream bis = new BufferedInputStream(in);
+				bis.mark(1);
+				bis.read();
+				bis.reset();
+			}
+			//getting initial part for streaming
+			if (pos==0){
+				boolean stream = getbytes(in, filename, numbytes);			
+			}
+			//reading next segment of video
+			/*(new Thread(){
+				public void run(){
+					try{
+						getbytes(in, names.next(), numbytes);
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}
+			}).start();*/
+			//playing current segment
+			playbytes(filename, videostage);
+			//Files.delete(Paths.get(filename));
+			byte1 =-1;
 		}
 	}
 }
