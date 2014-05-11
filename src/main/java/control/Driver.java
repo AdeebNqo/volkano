@@ -18,6 +18,7 @@ import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.io.BufferedInputStream;
+import java.util.concurrent.Semaphore;
 
 import java.awt.BorderLayout;
 import java.awt.image.BufferedImage;
@@ -89,13 +90,14 @@ public class Driver{
 		OutputStream out = new FileOutputStream(outputfile);
 		for(int i=0; i<numbytes; ++i){
 			int byt = srcstream.read();
-			if (byt==-1){
+			if (byt<0){
 				break;
 			}
 			out.write(byt);
-		}
+		}	
+		System.err.println("after for loop.");
 		out.close();
-		System.err.println("done retrieving part of file.");
+		System.err.println("done retrieving part. file: "+outputfile);
 		return true;
 	}
 	private static void playbytes(String filename, JLabel videostage){
@@ -122,7 +124,6 @@ public class Driver{
 			if (decoder.open() >= 0){
 				IVideoResampler resampler = null;
 				IStreamCoder videoCoder = decoder; //too tired to clean this up
-				System.err.println("stream pixel type: "+videoCoder.getPixelType());
 				if (videoCoder.getPixelType() != IPixelFormat.Type.BGR24){
 					// if this stream is not in BGR24, we're going to need to
 					// convert it.
@@ -149,7 +150,6 @@ public class Driver{
 
 						int offset = 0;
 						while(offset < packet.getSize()){
-							System.err.println("while with offset compare packet size.");
 							int bytesDecoded = videoCoder.decodeVideo(picture, packet, offset);
 							if (bytesDecoded < 0){
 								throw new RuntimeException("error decoding video");
@@ -193,7 +193,6 @@ public class Driver{
 										(millisecondsClockTimeSinceStartofVideo +
 										millisecondsTolerance));
 										if (millisecondsToSleep > 0){
-											System.err.println("if with img");
 											try
 											{
 												Thread.sleep(millisecondsToSleep);
@@ -217,7 +216,6 @@ public class Driver{
 						}
 					}
 				}
-				System.err.println("after packet processing.");
 			}
 			else{
 				//decoding video failed.
@@ -238,14 +236,23 @@ public class Driver{
 		int byte1=0;
 		int pos  = -1; //value to determine if first time in loop
 		final Names names = new Names();
+		final Semaphore lock = new Semaphore(1,true);
 
 		while(byte1!=-1){
 			++pos;
-			String filename = names.get(pos);
-			if (pos>3){
+			String filename;
+
+			System.err.println("main thread waiting");
+			lock.acquire();		
+			filename = names.get(pos);
+			System.err.println(filename);
+			lock.release();
+			System.err.println("main thread done");
+
+			if (pos>2){
 				BufferedInputStream bis = new BufferedInputStream(in);
 				bis.mark(1);
-				bis.read();
+				byte1 = bis.read();
 				bis.reset();
 			}
 			//getting initial part for streaming
@@ -253,19 +260,27 @@ public class Driver{
 				boolean stream = getbytes(in, filename, numbytes);			
 			}
 			//reading next segment of video
-			/*(new Thread(){
+			(new Thread(){
 				public void run(){
 					try{
-						getbytes(in, names.next(), numbytes);
+						lock.acquire();
+						System.err.println("thread started.");
+						String nextfilename = names.next();
+						System.err.println("nextfilename is "+nextfilename);
+						getbytes(in, nextfilename, numbytes);
+						lock.release();
+						System.err.println("thread released");						
 					}catch(Exception e){
 						e.printStackTrace();
 					}
 				}
-			}).start();*/
+			}).start();
 			//playing current segment
+			System.err.print("streaming ");
+			System.err.println(filename);
 			playbytes(filename, videostage);
-			//Files.delete(Paths.get(filename));
-			byte1 =-1;
+			Files.delete(Paths.get(filename));
+			System.err.println("done streaming");
 		}
 	}
 }
