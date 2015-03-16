@@ -59,10 +59,10 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.queryparser.classic.ParseException;
 
 public class Controller{
-	
+
 	final private String nick="volkano001";
 	private String password = "test";
-	
+
 	private String IP;
 	private int port;
 
@@ -96,14 +96,14 @@ public class Controller{
 		w = new IndexWriter(index, config);
 	}
 	/*
-	
+
 	Method for connecting to a dc hub
 
 	*/
 	public void connect() throws UnknownHostException,IOException, InterruptedException{
 		OPlist  = new LinkedList<String>();
 		NickList = new LinkedList<String>();
-	
+
 		System.err.println("Attempting to connect to "+IP+":"+port);
 		hubConnection = new Socket(IP,port);
 		hubInput = hubConnection.getInputStream();
@@ -147,7 +147,7 @@ public class Controller{
 				String[] opusers = listitem.split(" ");
 				if (opusers.length>1){
 					for (int i=1; i<opusers.length; ++i){
-						OPlist.add(opusers[i]);				
+						OPlist.add(opusers[i]);
 					}
 				}
 			}
@@ -171,7 +171,7 @@ public class Controller{
 				}
 			}
 		}
-	
+
 		//thread for handling hub broadcasts
 		(new Thread(){
 			public void run(){
@@ -184,7 +184,7 @@ public class Controller{
 		}).start();
 	}
 	/*
-	
+
 	Method for parsing file lists
 	*/
 	public void parseFileList(String xml, String user) throws ParserConfigurationException, SAXException, IOException{
@@ -222,9 +222,9 @@ public class Controller{
 		}
 	}
 	/*
-	
+
 	Method for searching for video
-	
+
 	*/
 	public Document[] search(String video) throws ParseException, IOException{
 		Query q = new QueryParser(Version.LUCENE_40, "Name", analyzer).parse(video);
@@ -235,13 +235,13 @@ public class Controller{
 		TopScoreDocCollector collector = TopScoreDocCollector.create(hitsPerPage, true);
 		searcher.search(q, collector);
 		ScoreDoc[] hits = collector.topDocs().scoreDocs;
-		Document[] docs = new Document[hits.length];		
+		Document[] docs = new Document[hits.length];
 		for (int i=0; i<hits.length; ++i){
 			docs[i] = searcher.doc(hits[i].doc);
 		}
 		return docs;
 	}
-	
+
 	/*
 
 	Method for handling all broadcasts from hub
@@ -264,7 +264,7 @@ public class Controller{
 		String connectclientResponse = getResponse();
 		final Socket clientSocket = s.accept();
 		s.close();
-		
+
 		//cache socket
 		connectionCache.put(user, clientSocket);
 
@@ -276,7 +276,7 @@ public class Controller{
 			String mynick = nick;
 			public void run(){
 				try{
-					
+
 					LinkedList<String> vals = new LinkedList<String>();
 					in2 = clientSocket.getInputStream();
 					in = new Scanner(in2);
@@ -305,7 +305,7 @@ public class Controller{
 					sendData("$ADCGET file files.xml 0 -1|");
 					String adcresponse = getResponse();
 					System.err.println("adcresponse is "+adcresponse);
-					int filesize = Integer.parseInt(adcresponse.split(" ")[4]);		
+					int filesize = Integer.parseInt(adcresponse.split(" ")[4]);
 					System.err.println("filesize: "+filesize);
 
 					in.useDelimiter("</FileListing>");
@@ -313,7 +313,7 @@ public class Controller{
 					filelist = filelist.substring(1).replaceAll("\\s+$", "")+"\n</FileListing>";
 					System.err.println("Done retreving filelist.");
 					parseFileList(filelist,user);
-					
+
 				}catch(Exception e){
 					//gracefully fail
 					e.printStackTrace();
@@ -354,7 +354,7 @@ public class Controller{
 	/*
 
 	Method for reading response from hub
-	
+
 	*/
 	private String getResponse() throws IOException{
 		try{
@@ -385,14 +385,14 @@ public class Controller{
 	/*
 
 	Method for sending data to hub
-	
+
 	*/
 	private void sendData(String data) throws IOException{
 		hubOutput.write(data.getBytes(Charset.forName("UTF-8")));
 		hubOutput.flush();
 	}
 	/*
-	
+
 	Method for getting lock and sending key
 
 	*/
@@ -401,7 +401,7 @@ public class Controller{
 		String lock = sanitizeLockKey(values[1],1);
 		System.err.println("Lock value is "+lock);
 		int len = lock.length();
-		
+
 		//computing the key and sending...
 		String key  = ""+(char)(lock.charAt(0) ^ lock.charAt(len-1) ^ lock.charAt(len-2) ^ 5);
 		for (int i = 1; i < len; i++){
@@ -418,15 +418,15 @@ public class Controller{
 		sendData("$Key "+key+"|");
 	}
 	/*
-	
+
 	Method for cleaning up lock/key
 
 	mode indicates how to clean lock/key. 0 for replace chars with odd strings, 1 remove odd string for chars
 	*/
 	public static String sanitizeLockKey(String lockkey,int mode){
-		
+
 		int len = lockkey.length();
-		if (len==0){		
+		if (len==0){
 			String sanitizedLockkey = "";
 			for (int i=0; i<len; ++i){
 				int val = lockkey.charAt(i);
@@ -468,7 +468,7 @@ public class Controller{
 	}
 	/*
 	Method for generating random key
-	
+
 	method stolen form http://stackoverflow.com/a/41156
 	*/
 	private SecureRandom random = new SecureRandom();
@@ -476,9 +476,9 @@ public class Controller{
 		return new BigInteger(130, random).toString(18);
 	}
 	/*
-	
+
 	Method for generating integers between range
-	
+
 	*/
 	public int randInt(int min, int max){
 		return min + (int)(Math.random() * ((max - min) + 1));
