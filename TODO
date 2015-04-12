@@ -1,0 +1,2 @@
+1. The hub responses like $Lock should have models
+so that they are easily 'decodable'.

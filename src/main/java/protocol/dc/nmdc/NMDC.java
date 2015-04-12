@@ -9,58 +9,97 @@ import models.Connection;
 import java.net.Socket;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import interfaces.DCBroadcastReceiver;
 import protocol.dc.DCProtocol;
+import protocol.dc.nmdc.NMDCUtil;
 
-public class NMDC extends DCProtocol{
+import protocol.dc.HubCommunicator;
+import exceptions.HubConnectionException;
+
+import java.util.concurrent.*;
+
+public class NMDC extends DCProtocol implements DCBroadcastReceiver{
 
         private boolean isDownloadPassive = false;
+
+        private HubCommunicator hubComm;
+        private String hubName;
 
         public NMDC(String username, String address, int port){
                 super( username,  address,  port);
         }
         public void connect() throws UnknownHostException,IOException, InterruptedException, Exception{
                 Connection hubConnection = new Connection(new Socket(getAddress(), getPort()));
-                setHubConnection(hubConnection);
 
-                String response = getHubData();
-                //sending the supports string
-                String[] items = response.split("\\|");
-                for (String item: items){
-                        if (item.startsWith("$Lock")){
-                                String key = getKeyFromLock(item);
-                                sendDataToHub(key);
-                        }
+                HubCommunicator.Init(hubConnection);
+                hubComm = HubCommunicator.getInstance();
+
+                //getting the 'lock' string from the hub.
+                String lockString = hubComm.getHubData();
+                String lockValue = NMDCUtil.identifyLock(lockString);
+
+                //todo: send the supports string
+
+                //sending key to hub
+                if (lockValue!=null){
+                        String key = NMDCUtil.getKeyFromLock(lockValue);
+                        hubComm.sendDataToHub("$Key "+key+"|");
                 }
+
                 //sending client's nick
-                sendDataToHub("$ValidateNick "+getUsername()+"|");
-                response = getHubData();
+                hubComm.sendDataToHub("$ValidateNick "+getUsername()+"|");
+                String response;
 
-                //determining whether
-                String[] itemsX = response.split("|");
-                for (String itemX:itemsX){
-                        if (itemX.startsWith("$GetPass")){
-                                //if hub requires password
-                                String password = getPassword();
-                                if (password.isEmpty()){
-                                        throw new exceptions.PasswordException("Password not provided, however, it is required by hub.");
-                                }else{
-                                        sendDataToHub("$MyPass "+password+"|");
-                                        //retrieve hello client msg
-                                        response = getHubData();
-                                }
+                response = hubComm.getHubData();
+                //System.err.println(response);
+                if (response.startsWith("$GetPass")){
+
+                        //sending pass if neccessary
+                        //if hub requires password
+                        String password = getPassword();
+                        if (password.isEmpty()){
+                                throw new exceptions.PasswordException("Password not provided, however, it is required by hub.");
+                        }else{
+                                hubComm.sendDataToHub("$MyPass "+password+"|");
                         }
                 }
+
+                //checking connection status
+                response = hubComm.getHubData();
+                if (!response.equals("$LogedIn")){
+                        throw new HubConnectionException("Cannot log into hub.");
+                }
+
                 //sending version and myinfo
-                sendDataToHub("$Version 1.0|");
-                sendDataToHub("$MyINFO $ALL "+getUsername()+" <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31$test@test.com$1234$|");
+                hubComm.sendDataToHub("$Version 1.0|");
+                hubComm.sendDataToHub("$MyINFO $ALL "+getUsername()+" <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31$test@test.com$1234$|");
                 //TODO: most of the information being sent to the hub is not set anywhere. that should be fixed. a settings/configuration
                 //page should be responsible for setting/creating this information. It shouldn't be static.
+
+                //getting hub name
+                response = hubComm.getHubData();
+                hubName = NMDCUtil.getHubName(response);
+
+                ScheduledExecutorService broadcastSrvice = Executors.newSingleThreadScheduledExecutor();
+                broadcastSrvice.scheduleAtFixedRate( new Runnable(){
+                        @Override
+                        public void run(){
+                                try{
+                                        String broadcastVal = hubComm.getBroadcastData();
+                                        if (broadcastVal!=null){
+                                                onReceive(broadcastVal);
+                                        }
+                                }catch(Exception e){
+                                        e.printStackTrace();
+                                }
+                        }
+                }, 0, 50, TimeUnit.MILLISECONDS);
         }
         public Collection<String> requestConnectedUsersNicks() throws Exception{
-                sendDataToHub("$GetNickList|");
+                hubComm.sendDataToHub("$GetNickList|");
 
-                String response = getHubData();
+                String response = hubComm.getHubData();
 
                 Collection<String> NickList = new ArrayList<String>();
                 String[] listItems = response.split("\\|");
@@ -81,7 +120,8 @@ public class NMDC extends DCProtocol{
                 return null;
         }
 
-        public void HandleHubBroadcasts(){
-
+        //propagate hub broadcasts
+        public void onReceive(String someBroadcastMessage){
+                broadcast(someBroadcastMessage);
         }
 }

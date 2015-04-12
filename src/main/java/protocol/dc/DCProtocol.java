@@ -18,7 +18,7 @@ import java.util.LinkedList;
 import java.util.Iterator;
 import interfaces.DCBroadcastReceiver;
 
-public abstract class DCProtocol extends Communicator implements DCBroadcaster{
+public abstract class DCProtocol implements DCBroadcaster{
 
         Collection<DCBroadcastReceiver> dCBroadcasterSubscribers = new LinkedList<DCBroadcastReceiver>();
 
@@ -65,7 +65,6 @@ public abstract class DCProtocol extends Communicator implements DCBroadcaster{
         public void unregister(DCBroadcastReceiver someBroadcastReceiver){
                 dCBroadcasterSubscribers.remove(someBroadcastReceiver);
         }
-
         public abstract void connect() throws UnknownHostException,IOException, InterruptedException, Exception;
         public abstract Collection<String> requestConnectedUsersNicks() throws Exception;
         public abstract File getFileList(String username);

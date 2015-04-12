@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 
 public abstract class ClientHandler extends Communicator{
-        private Connection clientConnection;
 
         private boolean isDownloadPassive;
         private boolean isConnected;
@@ -30,8 +29,8 @@ public abstract class ClientHandler extends Communicator{
         private String localAddress;
         private int localPort;
 
-        public ClientHandler(Connection hubConnection){
-                setHubConnection(hubConnection);
+        public ClientHandler(Connection connection){
+                setConnection(connection);
         }
         public void setDownloadPassive(boolean value){
                 isDownloadPassive = value;
@@ -43,10 +42,10 @@ public abstract class ClientHandler extends Communicator{
                 return isConnected;
         }
         public String getClientData() throws Exception{
-                return getData(clientConnection.getInputStream());
+                return getData(connection.getInputStream());
         }
         public void sendDataToClient(String data) throws IOException{
-                sendData(clientConnection.getOutputStream(), data);
+                sendData(connection.getOutputStream(), data);
         }
         public void setLocalUsername(String localUsername){
                 this.localUsername = localUsername;
@@ -84,12 +83,6 @@ public abstract class ClientHandler extends Communicator{
         }
         public void setLocalPort(int localPort){
                 this.localPort = localPort;
-        }
-        public void setClientConnection(Connection clientConnection){
-                this.clientConnection = clientConnection;
-        }
-        public Connection getClientConnection(){
-                return clientConnection;
         }
 
         public abstract void connect() throws IOException, Exception;

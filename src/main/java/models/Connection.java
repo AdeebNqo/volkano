@@ -31,14 +31,20 @@ public class Connection{
         public void setInputStream(InputStream inputStream){
                 this.inputStream = inputStream;
         }
-        public InputStream getInputStream(){
+        public InputStream getInputStream() throws java.io.IOException{
+                if (inputStream==null){
+                        setInputStream(socket.getInputStream());
+                }
                 return inputStream;
         }
 
         public void setOutputStream(OutputStream outputStream){
                 this.outputStream = outputStream;
         }
-        public OutputStream getOutputStream(){
+        public OutputStream getOutputStream() throws java.io.IOException{
+                if (outputStream == null){
+                        setOutputStream(socket.getOutputStream());
+                }
                 return outputStream;
         }
 }

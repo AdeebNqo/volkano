@@ -8,10 +8,14 @@ import java.net.ServerSocket;
 import java.io.InputStream;
 
 import protocol.dc.ClientHandler;
+import protocol.dc.HubCommunicator;
 
 public class NMDCClientHandler extends ClientHandler{
+
         private final Scanner inputReader;
-        public NMDCClientHandler(Connection clientConnection){
+        private HubCommunicator hubComm = HubCommunicator.getInstance();
+
+        public NMDCClientHandler(Connection clientConnection) throws java.io.IOException{
                 super(clientConnection);
 
                 inputReader = new Scanner(clientConnection.getInputStream());
@@ -27,12 +31,12 @@ public class NMDCClientHandler extends ClientHandler{
                         setLocalAddress("127.0.0.1"); //TODO: determine IP from server socket
                         setLocalPort(localListener.getLocalPort());
 
-                        sendDataToHub("$ConnectToMe "+getRemoteUsername()+" "+getLocalAddress()+":"+getLocalPort()+"|");
-                        String response = getHubData();
+                        hubComm.sendDataToHub("$ConnectToMe "+getRemoteUsername()+" "+getLocalAddress()+":"+getLocalPort()+"|");
+                        String response = hubComm.getHubData();
 
                         //accepting the connecting of the remote client and creating
                         //the connection between the two
-                        setClientConnection(new Connection(localListener.accept()));
+                        setConnection(new Connection(localListener.accept()));
                         localListener.close();
                 }else{
                         //TODO: find out how to connect non passively.
@@ -45,7 +49,7 @@ public class NMDCClientHandler extends ClientHandler{
 
                 //getting the file
                 String fileString = "";
-                InputStream input = getClientConnection().getInputStream();
+                InputStream input = getConnection().getInputStream();
                 int read = 0;
                 while (read<filesize){
                         int availableBytes = input.available();

@@ -2,4 +2,6 @@ analysis/
 *.pyc
 build/
 .gladle/
+.gradle/**
 *~
+repos/
