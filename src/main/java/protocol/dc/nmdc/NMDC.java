@@ -17,7 +17,9 @@ import protocol.dc.nmdc.NMDCUtil;
 import protocol.dc.HubCommunicator;
 import exceptions.HubConnectionException;
 
-import java.util.concurrent.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executors;
 
 public class NMDC extends DCProtocol implements DCBroadcastReceiver{
 
