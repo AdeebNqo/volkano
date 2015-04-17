@@ -34,8 +34,7 @@ public class NMDC extends DCProtocol implements DCBroadcastReceiver{
         public void connect() throws UnknownHostException,IOException, InterruptedException, Exception{
                 Connection hubConnection = new Connection(new Socket(getAddress(), getPort()));
 
-                HubCommunicator.Init(hubConnection);
-                hubComm = HubCommunicator.getInstance();
+                hubComm = new NMDCHubCommunicator(hubConnection);
 
                 //getting the 'lock' string from the hub.
                 String lockString = hubComm.getHubData();

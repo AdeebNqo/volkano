@@ -14,9 +14,7 @@ public class NMDCHubCommunicator extends NMDCCommunicator implements HubCommunic
         final Queue<String> hubData = new ConcurrentLinkedQueue<String>();
         final Queue<String> broadcastData = new ConcurrentLinkedQueue<String>();
 
-        private static NMDCHubCommunicator INSTANCE;
-
-        private NMDCHubCommunicator(Connection connection){
+        public NMDCHubCommunicator(Connection connection){
                 setConnection(connection);
                 ScheduledExecutorService getHubDataService = Executors.newSingleThreadScheduledExecutor();
                 getHubDataService.scheduleAtFixedRate( new Runnable(){
@@ -39,13 +37,6 @@ public class NMDCHubCommunicator extends NMDCCommunicator implements HubCommunic
                                 }
                         }
                 }, 0, 50, TimeUnit.MILLISECONDS);
-        }
-
-        public static void Init(Connection connection){
-                INSTANCE = new NMDCHubCommunicator(connection);
-        }
-        public static NMDCHubCommunicator getInstance(){
-                return INSTANCE;
         }
 
         public String getHubData(){

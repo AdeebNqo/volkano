@@ -18,9 +18,13 @@ public class NMDCCommunicator extends Communicator{
                 Scanner dataReader = new Scanner(connection.getInputStream());
                 return dataReader.hasNext();
         }
-        public void sendData(OutputStream outputStream, String data) throws IOException{
-                outputStream.write(data.getBytes());
-                outputStream.flush();
+        public void sendData(OutputStream outputStream, String data){
+          try{
+            outputStream.write(data.getBytes());
+            outputStream.flush();
+          }catch(Exception e){
+            e.printStackTrace();
+          }
         }
         public String getData(InputStream inputStream) throws IOException{
                 Scanner reader = new Scanner(inputStream);

@@ -23,8 +23,7 @@ public class ADC extends DCProtocol{
         public void connect() throws UnknownHostException,IOException, InterruptedException, Exception{
                 Connection hubConnection = new Connection(new Socket(getAddress(), getPort()));
 
-                HubCommunicator.Init(hubConnection);
-                hubComm = HubCommunicator.getInstance();
+                hubComm = new ADCHubCommunicator (hubConnection);
 
                 hubComm.sendDataToHub("HSUP ADBASE");
                 String greeting = hubComm.getHubData();

@@ -17,7 +17,10 @@ public class Driver {
                 final String IP = "127.0.0.1";
                 final int port = 9090;
 
-                BroadcastTester bTester = new BroadcastTester();
+                Controller control = new Controller(IP, port);
+                control.loop();
+                
+                /*BroadcastTester bTester = new BroadcastTester();
 
                 ProtocolLoader pLoader = ProtocolLoader.getInstance();
                 DCProtocol dc = pLoader.getProtocol("FlexGui", IP, port);
@@ -31,7 +34,7 @@ public class Driver {
                 }
                 while(true){
 
-                }
+                }*/
         }
 
         static class BroadcastTester implements DCBroadcastReceiver{

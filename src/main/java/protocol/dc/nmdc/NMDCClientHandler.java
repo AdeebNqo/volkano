@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.Scanner;
 import java.net.ServerSocket;
 import java.io.InputStream;
+import java.io.OutputStream;
 
 import protocol.dc.ClientHandler;
 import protocol.dc.HubCommunicator;
@@ -13,7 +14,7 @@ import protocol.dc.HubCommunicator;
 public class NMDCClientHandler extends ClientHandler{
 
         private final Scanner inputReader;
-        private HubCommunicator hubComm = HubCommunicator.getInstance();
+        private HubCommunicator hubComm;
 
         public NMDCClientHandler(Connection clientConnection) throws java.io.IOException{
                 super(clientConnection);
@@ -60,5 +61,15 @@ public class NMDCClientHandler extends ClientHandler{
                 }
                 //TODO: convert a string into a file object.
                 return null;
+        }
+
+        public boolean hasData() throws IOException{
+          return false;
+        }
+        public void sendData(OutputStream outputStream, String data){
+
+        }
+        public String getData(InputStream inputStream) throws IOException{
+          return null;
         }
 }
