@@ -11,13 +11,19 @@ import protocol.dc.HubCommunicator;
 import models.Connection;
 import java.net.Socket;
 
+import com.google.inject.Inject;
+import interfaces.IConfiguration;
+
 public class ADC extends DCProtocol{
 
         private HubCommunicator hubComm;
         private String hubName;
 
-        public ADC(String username, String address, int port){
-                super(username,address,port);
+        public ADC(){}
+
+        @Inject
+        public ADC(IConfiguration config){
+                super(config);
         }
 
         public void connect() throws UnknownHostException,IOException, InterruptedException, Exception{

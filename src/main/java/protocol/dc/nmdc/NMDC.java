@@ -21,6 +21,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.Executors;
 
+import com.google.inject.Inject;
+import interfaces.IConfiguration;
+
 public class NMDC extends DCProtocol implements DCBroadcastReceiver{
 
         private boolean isDownloadPassive = false;
@@ -30,8 +33,9 @@ public class NMDC extends DCProtocol implements DCBroadcastReceiver{
 
         public NMDC(){} //TODO: find out why this has to exit for Guice
 
-        public NMDC(String username, String address, int port){
-                super( username,  address,  port);
+        @Inject
+        public NMDC(IConfiguration config){
+                super(config);
         }
         public void connect() throws UnknownHostException,IOException, InterruptedException, Exception{
                 Connection hubConnection = new Connection(new Socket(getAddress(), getPort()));

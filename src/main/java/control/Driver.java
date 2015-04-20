@@ -5,7 +5,6 @@ import protocol.dc.nmdc.NMDC;
 import protocol.dc.adc.ADC;
 import java.net.Socket;
 import interfaces.DCBroadcastReceiver;
-import loaders.ProtocolLoader;
 import protocol.dc.DCProtocol;
 
 import java.io.IOException;
@@ -23,9 +22,6 @@ public class Driver {
 
                 Injector injector = Guice.createInjector(new DefaultInjector());
                 Controller app = injector.getInstance(Controller.class);
-
-                app.setIP(IP);
-                app.setPort(port);
 
                 app.loop();
         }

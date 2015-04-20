@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Iterator;
 import interfaces.DCBroadcastReceiver;
+import interfaces.IConfiguration;
 
 public abstract class DCProtocol implements DCBroadcaster{
 
@@ -30,10 +31,10 @@ public abstract class DCProtocol implements DCBroadcaster{
 
         public DCProtocol(){} //TODO: find out why this has to exit for Guice
 
-        public DCProtocol(String username, String address, int port){
-                this.username = username;
-                this.address = address;
-                this.port = port;
+        public DCProtocol(IConfiguration config){
+                this.username = config.getUsername();
+                this.address = config.getIPAddress();
+                this.port = config.getPort();
         }
         public String getAddress(){
                 return address;

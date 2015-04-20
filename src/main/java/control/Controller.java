@@ -18,15 +18,6 @@ public class Controller{
   public Controller(DCProtocol dc, DCBroadcastReceiver receiver){
     dcprotocol = dc;
   }
-  public Controller(String ip, int port){
-
-  }
-  public void setIP(String ip){
-
-  }
-  public void setPort(int port){
-
-  }
   public void loop(){
     try{
             System.out.println("Connecting to Hub...");
