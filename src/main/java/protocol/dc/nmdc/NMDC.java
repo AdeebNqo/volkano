@@ -28,6 +28,8 @@ public class NMDC extends DCProtocol implements DCBroadcastReceiver{
         private HubCommunicator hubComm;
         private String hubName;
 
+        public NMDC(){} //TODO: find out why this has to exit for Guice
+
         public NMDC(String username, String address, int port){
                 super( username,  address,  port);
         }

@@ -28,6 +28,8 @@ public abstract class DCProtocol implements DCBroadcaster{
         private String address;
         private int port;
 
+        public DCProtocol(){} //TODO: find out why this has to exit for Guice
+
         public DCProtocol(String username, String address, int port){
                 this.username = username;
                 this.address = address;

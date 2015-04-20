@@ -13,6 +13,12 @@ jar {
 		'Class-Path':'.',
 		'Main-Class': 'control.Driver'
 	}
+
+        from {
+                configurations.compile.collect{
+                        it.isDirectory() ? it : zipTree(it)
+                }
+        }
 }
 
 uploadArchives {
@@ -21,4 +27,8 @@ uploadArchives {
 			dirs 'repos'
 		}
 	}
+}
+
+task listJars << {
+    configurations.compile.each { File file -> println file.name }
 }
