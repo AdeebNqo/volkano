@@ -36,7 +36,7 @@ public abstract class DCProtocol implements DCBroadcaster{
                 this.address = config.getIPAddress();
                 this.port = config.getPort();
         }
-        public String getAddress(){
+        public String getAddress() {
                 return address;
         }
         public int getPort(){

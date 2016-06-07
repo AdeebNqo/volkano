@@ -1,0 +1,10 @@
+{
+  "hub_connect":{
+    "address" : "dchub://verlihub.org",
+    "port" : 4111
+  },
+  "user_details":{
+    "username":"testman",
+    "password":"whoknows"
+  }
+}

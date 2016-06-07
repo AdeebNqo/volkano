@@ -1,6 +1,7 @@
 package injectors;
 
 import com.google.inject.AbstractModule;
+import control.JsonSettings;
 import protocol.dc.nmdc.NMDC;
 import interfaces.DCBroadcastReceiver;
 import models.BroadcastTester;
@@ -13,7 +14,7 @@ public class DefaultInjector extends AbstractModule {
     protected void configure() {
         bind(DCProtocol.class).to(NMDC.class);
         bind(DCBroadcastReceiver.class).to(BroadcastTester.class);
-        bind(IConfiguration.class).to(DefaultConfiguration.class);
+        bind(IConfiguration.class).to(JsonSettings.class);
     }
 
 }

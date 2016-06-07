@@ -5,3 +5,6 @@ build/
 .gradle/**
 *~
 repos/
+gradle/
+.idea/
+gradlew*

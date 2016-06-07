@@ -5,6 +5,7 @@ import java.net.UnknownHostException;
 import java.util.Collection;
 import java.io.File;
 
+import exceptions.PasswordException;
 import models.Connection;
 import java.net.Socket;
 
@@ -31,13 +32,13 @@ public class NMDC extends DCProtocol implements DCBroadcastReceiver{
         private HubCommunicator hubComm;
         private String hubName;
 
-        public NMDC(){} //TODO: find out why this has to exit for Guice
+        public NMDC(){} //TODO: find out why this has to exist for Guice
 
         @Inject
         public NMDC(IConfiguration config){
                 super(config);
         }
-        public void connect() throws UnknownHostException,IOException, InterruptedException, Exception{
+        public void connect() throws InterruptedException, IOException, PasswordException, HubConnectionException {
                 Connection hubConnection = new Connection(new Socket(getAddress(), getPort()));
 
                 hubComm = new NMDCHubCommunicator(hubConnection);
