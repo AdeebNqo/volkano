@@ -1,5 +1,6 @@
 package control;
 
+import interfaces.IConfiguration;
 import protocol.dc.DCProtocol;
 import com.google.inject.Inject;
 
@@ -7,22 +8,28 @@ import interfaces.DCBroadcastReceiver;
 
 public class Controller{
 
-  DCProtocol dcprotocol;
+    DCProtocol dcprotocol;
+    IConfiguration config;
 
-  @Inject
-  public Controller(DCProtocol dc, DCBroadcastReceiver receiver){
-    dcprotocol = dc;
-  }
-  public void loop(){
-    try{
-            System.out.println("Connecting to Hub...");
-            dcprotocol.connect();
-            System.err.println("Connected!");
-    }catch(Exception e){
-            e.printStackTrace();
+    @Inject
+    public Controller(DCProtocol dc, DCBroadcastReceiver receiver, IConfiguration config) {
+        dcprotocol = dc;
+        this.config = config;
     }
-    while(true){
+    public void loop() {
+        try {
+                if (config.isDebugOn())
+                    System.err.println("Connecting to Hub...");
+                dcprotocol.connect();
+                if (config.isDebugOn())
+                    System.err.println("Connected!");
+        } catch(Exception e) {
+                e.printStackTrace();
+        }
 
+        //TODO this shoudn't exist
+        while(true) {
+
+        }
     }
-  }
 }

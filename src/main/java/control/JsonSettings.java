@@ -2,11 +2,12 @@ package control;
 
 import com.google.gson.Gson;
 import interfaces.IConfiguration;
-import models.Settings;
+import models.settings.Settings;
 
-import java.io.InputStream;
+import java.io.FileInputStream;
 
 public class JsonSettings implements IConfiguration {
+    private final boolean DEBUG = true;
 
     final String IP;
     final int port;
@@ -14,17 +15,25 @@ public class JsonSettings implements IConfiguration {
     final String password;
 
     public JsonSettings() {
-        InputStream settingsStream = getClass().getResourceAsStream("control/settings.json");
-        String jsonData;
-
-        try(java.util.Scanner s = new java.util.Scanner(settingsStream)) {
-            jsonData = s.useDelimiter("\\A").hasNext() ? s.next() : "";
+        String jsonData = "";
+        try {
+            //TODO Find a better way to store the settings file
+            FileInputStream settingsStream = new FileInputStream("/tmp/settings.json");
+            try (java.util.Scanner s = new java.util.Scanner(settingsStream)) {
+                jsonData = s.useDelimiter("\\A").hasNext() ? s.next() : "";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
         Gson gson = new Gson();
         Settings settings = gson.fromJson(jsonData, Settings.class);
 
-        IP = settings.getHubConnectDetails().getAddress();
+        String tmpIP = settings.getHubConnectDetails().getAddress();
+        if (tmpIP.startsWith("dchub://")) {
+            IP = tmpIP.replace("dchub://", "");
+        } else{
+            IP = tmpIP;
+        }
         port = settings.getHubConnectDetails().getPort().intValue();
         username = settings.getUserDetails().getUsername();
         password = settings.getUserDetails().getPassword();
@@ -58,5 +67,10 @@ public class JsonSettings implements IConfiguration {
     @Override
     public int getPort() {
         return port;
+    }
+
+    @Override
+    public boolean isDebugOn() {
+        return DEBUG;
     }
 }

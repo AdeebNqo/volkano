@@ -4,18 +4,15 @@ import java.net.Socket;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class Connection{
+public class Connection {
 
         private Socket socket = null;
         private InputStream inputStream = null;
         private OutputStream outputStream = null;
 
-        public Connection(){
-
-        }
         public Connection(Socket socket) throws java.io.IOException{
                 this.socket = socket;
-                if (socket!=null){
+                if (socket!=null) {
                         setInputStream(socket.getInputStream());
                         setOutputStream(socket.getOutputStream());
                 }

@@ -27,109 +27,118 @@ import interfaces.IConfiguration;
 
 public class NMDC extends DCProtocol implements DCBroadcastReceiver{
 
-        private boolean isDownloadPassive = false;
+    private boolean isDownloadPassive = false;
+    private HubCommunicator hubComm;
+    private String hubName;
 
-        private HubCommunicator hubComm;
-        private String hubName;
+    public NMDC(){} //TODO: find out why this has to exist for Guice
 
-        public NMDC(){} //TODO: find out why this has to exist for Guice
+    @Inject
+    public NMDC(IConfiguration config){
+            super(config);
+    }
+    public void connect() throws InterruptedException, IOException, PasswordException, HubConnectionException {
+            Connection hubConnection = new Connection(new Socket(getAddress(), getPort()));
 
-        @Inject
-        public NMDC(IConfiguration config){
-                super(config);
-        }
-        public void connect() throws InterruptedException, IOException, PasswordException, HubConnectionException {
-                Connection hubConnection = new Connection(new Socket(getAddress(), getPort()));
+            hubComm = new NMDCHubCommunicator(hubConnection);
 
-                hubComm = new NMDCHubCommunicator(hubConnection);
+            if (config.isDebugOn())
+                System.err.println("Attempting to get lock from the hub.");
 
-                //getting the 'lock' string from the hub.
-                String lockString = hubComm.getHubData();
-                String lockValue = NMDCUtil.identifyLock(lockString);
+            //getting the 'lock' string from the hub.
+            String lockString = hubComm.getHubData();
+            String lockValue = NMDCUtil.identifyLock(lockString);
 
-                //todo: send the supports string
+            if (config.isDebugOn())
+                System.err.println("received lock. value is "+lockValue);
 
-                //sending key to hub
-                if (lockValue!=null){
-                        String key = NMDCUtil.getKeyFromLock(lockValue);
-                        hubComm.sendDataToHub("$Key "+key+"|");
-                }
+            //todo: send the supports string
 
-                //sending client's nick
-                hubComm.sendDataToHub("$ValidateNick "+getUsername()+"|");
-                String response;
+            if (config.isDebugOn())
+                System.err.println("Sending key to hub...");
 
-                response = hubComm.getHubData();
-                //System.err.println(response);
-                if (response.startsWith("$GetPass")){
+            //sending key to hub
+            if (lockValue!=null) {
+                    String key = NMDCUtil.getKeyFromLock(lockValue);
+                    hubComm.sendDataToHub("$Key "+key+"|");
+            }
 
-                        //sending pass if neccessary
-                        //if hub requires password
-                        String password = getPassword();
-                        if (password.isEmpty()){
-                                throw new exceptions.PasswordException("Password not provided, however, it is required by hub.");
-                        }else{
-                                hubComm.sendDataToHub("$MyPass "+password+"|");
-                        }
-                }
+            //sending client's nick
+            hubComm.sendDataToHub("$ValidateNick "+getUsername()+"|");
+            String response;
 
-                //checking connection status
-                response = hubComm.getHubData();
-                if (!response.equals("$LogedIn")){
-                        throw new HubConnectionException("Cannot log into hub.");
-                }
+            response = hubComm.getHubData();
+            //System.err.println(response);
+            if (response.startsWith("$GetPass")) {
 
-                //sending version and myinfo
-                hubComm.sendDataToHub("$Version 1.0|");
-                hubComm.sendDataToHub("$MyINFO $ALL "+getUsername()+" <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31$test@test.com$1234$|");
-                //TODO: most of the information being sent to the hub is not set anywhere. that should be fixed. a settings/configuration
-                //page should be responsible for setting/creating this information. It shouldn't be static.
+                    //sending pass if neccessary
+                    //if hub requires password
+                    String password = getPassword();
+                    if (password.isEmpty()){
+                            throw new exceptions.PasswordException("Password not provided, however, it is required by hub.");
+                    }else{
+                            hubComm.sendDataToHub("$MyPass "+password+"|");
+                    }
+            }
 
-                //getting hub name
-                response = hubComm.getHubData();
-                hubName = NMDCUtil.getHubName(response);
+            //checking connection status
+            response = hubComm.getHubData();
+            if (!response.equals("$LogedIn")) {
+                    throw new HubConnectionException("Cannot log into hub.");
+            }
 
-                ScheduledExecutorService broadcastSrvice = Executors.newSingleThreadScheduledExecutor();
-                broadcastSrvice.scheduleAtFixedRate( new Runnable(){
-                        @Override
-                        public void run(){
-                                try{
-                                        String broadcastVal = hubComm.getBroadcastData();
-                                        if (broadcastVal!=null){
-                                                onReceive(broadcastVal);
-                                        }
-                                }catch(Exception e){
-                                        e.printStackTrace();
-                                }
-                        }
-                }, 0, 50, TimeUnit.MILLISECONDS);
-        }
-        public Collection<String> requestConnectedUsersNicks() throws Exception{
-                hubComm.sendDataToHub("$GetNickList|");
+            //sending version and myinfo
+            hubComm.sendDataToHub("$Version 1.0|");
+            hubComm.sendDataToHub("$MyINFO $ALL "+getUsername()+" <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31$test@test.com$1234$|");
+            //TODO: most of the information being sent to the hub is not set anywhere. that should be fixed. a settings/configuration
+            //page should be responsible for setting/creating this information. It shouldn't be static.
 
-                String response = hubComm.getHubData();
+            //getting hub name
+            response = hubComm.getHubData();
+            hubName = NMDCUtil.getHubName(response);
 
-                Collection<String> NickList = new ArrayList<String>();
-                String[] listItems = response.split("\\|");
-                for (String listitem:listItems){
-                        listitem = listitem.trim();
-                        if (listitem.startsWith("$NickList")){
-                                int pos = listitem.indexOf(' ');
-                                String usersdoubledollar = listitem.substring(pos).trim();
-                                String[] nicks = usersdoubledollar.split("\\$\\$");
-                                for (String nick:nicks){
-                                        NickList.add(nick);
-                                }
-                        }
-                }
-                return NickList;
-        }
-        public File getFileList(String username){
-                return null;
-        }
+            ScheduledExecutorService broadcastSrvice = Executors.newSingleThreadScheduledExecutor();
+            broadcastSrvice.scheduleAtFixedRate( new Runnable() {
+                    @Override
+                    public void run(){
+                            try {
+                                    String broadcastVal = hubComm.getBroadcastData();
+                                    if (broadcastVal!=null){
+                                            onReceive(broadcastVal);
+                                    }
+                            } catch(Exception e) {
+                                    e.printStackTrace();
+                            }
+                    }
+            }, 0, 50, TimeUnit.MILLISECONDS);
+    }
 
-        //propagate hub broadcasts
-        public void onReceive(String someBroadcastMessage){
-                broadcast(someBroadcastMessage);
-        }
+    public Collection<String> requestConnectedUsersNicks() throws Exception {
+            hubComm.sendDataToHub("$GetNickList|");
+
+            String response = hubComm.getHubData();
+
+            Collection<String> NickList = new ArrayList<String>();
+            String[] listItems = response.split("\\|");
+            for (String listitem:listItems){
+                    listitem = listitem.trim();
+                    if (listitem.startsWith("$NickList")){
+                            int pos = listitem.indexOf(' ');
+                            String usersdoubledollar = listitem.substring(pos).trim();
+                            String[] nicks = usersdoubledollar.split("\\$\\$");
+                            for (String nick:nicks){
+                                    NickList.add(nick);
+                            }
+                    }
+            }
+            return NickList;
+    }
+    public File getFileList(String username){
+            return null;
+    }
+
+    //propagate hub broadcasts
+    public void onReceive(String someBroadcastMessage){
+            broadcast(someBroadcastMessage);
+    }
 }
