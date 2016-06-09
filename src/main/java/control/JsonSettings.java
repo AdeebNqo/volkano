@@ -5,6 +5,7 @@ import interfaces.IConfiguration;
 import models.settings.Settings;
 
 import java.io.FileInputStream;
+import java.util.List;
 
 public class JsonSettings implements IConfiguration {
     private final boolean DEBUG = true;
@@ -13,6 +14,7 @@ public class JsonSettings implements IConfiguration {
     final int port;
     final String username;
     final String password;
+    final List<String> supportedFeatures;
 
     public JsonSettings() {
         String jsonData = "";
@@ -37,6 +39,7 @@ public class JsonSettings implements IConfiguration {
         port = settings.getHubConnectDetails().getPort().intValue();
         username = settings.getUserDetails().getUsername();
         password = settings.getUserDetails().getPassword();
+        supportedFeatures = settings.getSupportedFeatures();
     }
 
     @Override
@@ -72,5 +75,10 @@ public class JsonSettings implements IConfiguration {
     @Override
     public boolean isDebugOn() {
         return DEBUG;
+    }
+
+    @Override
+    public List<String> getSupportedFeatures() {
+        return supportedFeatures;
     }
 }

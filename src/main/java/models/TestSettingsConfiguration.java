@@ -2,6 +2,8 @@ package models;
 
 import interfaces.IConfiguration;
 
+import java.util.List;
+
 // setting used when testing
 public class TestSettingsConfiguration implements IConfiguration {
 
@@ -37,5 +39,10 @@ public class TestSettingsConfiguration implements IConfiguration {
     @Override
     public boolean isDebugOn() {
         return DEBUG;
+    }
+
+    @Override
+    public List<String> getSupportedFeatures() {
+        return null;
     }
 }

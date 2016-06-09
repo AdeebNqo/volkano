@@ -1,11 +1,14 @@
 package interfaces;
 
+import java.util.List;
+
 public interface IConfiguration {
-        public void setUsername(String username);
-        public String getUsername();
-        public void setPassword(String password);
-        public String getPassword();
-        public String getIPAddress();
-        public int getPort();
-        public boolean isDebugOn();
+    void setUsername(String username);
+    String getUsername();
+    void setPassword(String password);
+    String getPassword();
+    String getIPAddress();
+    int getPort();
+    boolean isDebugOn();
+    List<String> getSupportedFeatures();
 }

@@ -6,5 +6,6 @@
   "user_details":{
     "username":"testman",
     "password":"whoknows"
-  }
+  },
+  "client_supports":["UserCommand", "TTHSearch"]
 }
