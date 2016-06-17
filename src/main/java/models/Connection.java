@@ -45,14 +45,4 @@ public class Connection {
         }
         return outputStream;
     }
-
-    public boolean isOtherPartyReachable() {
-        boolean result = false;
-        try {
-            result = socket.getInetAddress().isReachable(30000);
-        } catch(IOException e) {
-            result = false;
-        }
-        return result;
-    }
 }

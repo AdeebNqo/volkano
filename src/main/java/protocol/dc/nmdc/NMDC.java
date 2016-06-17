@@ -50,7 +50,7 @@ public class NMDC extends DCProtocol implements DCBroadcastReceiver{
         hubComm = new NMDCHubCommunicator(hubConnection);
 
         if (config.isDebugOn())
-            System.err.println("About to connect to hub. Is hub reachable = "+hubConnection.isOtherPartyReachable());
+            System.err.println("About to connect to hub.");
 
         exchangeLock();
         ValidateNickResponse validatedNickResponse = validateNick();
@@ -77,7 +77,7 @@ public class NMDC extends DCProtocol implements DCBroadcastReceiver{
 
             //getting hub name
             if (config.isDebugOn())
-                System.err.println("Getting hub name. Is hub reachable = "+hubConnection.isOtherPartyReachable());
+                System.err.println("Getting hub name.");
             String response = hubComm.getHubData();
             if (config.isDebugOn())
                 System.err.println("The hub name request was responded with "+response);
