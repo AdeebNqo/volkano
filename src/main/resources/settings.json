@@ -1,11 +1,13 @@
 {
   "hub_connect":{
-    "address" : "dchub://verlihub.org",
-    "port" : 4111
+    "address" : "sniper.redirectme.net",
+    "port" : 411
   },
   "user_details":{
     "username":"testman",
-    "password":"whoknows"
+    "password":"whoknows",
+    "description":"who knows man",
+    "email":"androidpot107@gmail.com"
   },
   "client_supports":["UserCommand", "TTHSearch"]
 }

@@ -11,4 +11,6 @@ public interface IConfiguration {
     int getPort();
     boolean isDebugOn();
     List<String> getSupportedFeatures();
+    String getDescription();
+    String getEmail();
 }

@@ -14,6 +14,8 @@ public class JsonSettings implements IConfiguration {
     final int port;
     final String username;
     final String password;
+    final String description;
+    final String email;
     final List<String> supportedFeatures;
 
     public JsonSettings() {
@@ -39,6 +41,8 @@ public class JsonSettings implements IConfiguration {
         port = settings.getHubConnectDetails().getPort().intValue();
         username = settings.getUserDetails().getUsername();
         password = settings.getUserDetails().getPassword();
+        description = settings.getUserDetails().getDescription();
+        email = settings.getUserDetails().getEmail();
         supportedFeatures = settings.getSupportedFeatures();
     }
 
@@ -80,5 +84,15 @@ public class JsonSettings implements IConfiguration {
     @Override
     public List<String> getSupportedFeatures() {
         return supportedFeatures;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+
+    @Override
+    public String getEmail() {
+        return email;
     }
 }

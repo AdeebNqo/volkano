@@ -45,4 +45,14 @@ public class TestSettingsConfiguration implements IConfiguration {
     public List<String> getSupportedFeatures() {
         return null;
     }
+
+    @Override
+    public String getDescription() {
+        return "i am god";
+    }
+
+    @Override
+    public String getEmail() {
+        return "test@mctestface.com";
+    }
 }

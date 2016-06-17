@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import interfaces.DCBroadcastReceiver;
+import models.ValidateNickResponse;
 import protocol.dc.DCProtocol;
 import protocol.dc.nmdc.NMDCUtil;
 
@@ -26,7 +27,11 @@ import java.util.concurrent.TimeoutException;
 
 import com.google.inject.Inject;
 import interfaces.IConfiguration;
+/*
 
+The protocol was found at http://wiki.gusari.org/
+
+ */
 public class NMDC extends DCProtocol implements DCBroadcastReceiver{
 
     private HubCommunicator hubComm;
@@ -38,11 +43,67 @@ public class NMDC extends DCProtocol implements DCBroadcastReceiver{
     public NMDC(IConfiguration config){
             super(config);
     }
-    public void connect() throws InterruptedException, IOException, PasswordException, HubConnectionException {
-        Connection hubConnection = new Connection(new Socket(getAddress(), getPort()));
 
+    public void connect() throws InterruptedException, IOException, PasswordException, HubConnectionException {
+
+        Connection hubConnection = new Connection(new Socket(getAddress(), getPort()));
         hubComm = new NMDCHubCommunicator(hubConnection);
 
+        if (config.isDebugOn())
+            System.err.println("About to connect to hub. Is hub reachable = "+hubConnection.isOtherPartyReachable());
+
+        exchangeLock();
+        ValidateNickResponse validatedNickResponse = validateNick();
+        boolean canEnterHub = false;
+        if (validatedNickResponse.isNickRegistered() && !validatedNickResponse.isNickValid()) {
+            //wrong password
+            canEnterHub = false;
+            throw new PasswordException("Incorrect password");
+        } else if (!validatedNickResponse.isNickRegistered() && validatedNickResponse.isNickValid()) {
+            //remind registration, can continue though
+            canEnterHub = true;
+        } else if (validatedNickResponse.isNickRegistered() && validatedNickResponse.isNickValid()) {
+            //say welcome back perhaps
+            canEnterHub = true;
+        } else {
+            //cannot connect to hub.
+            canEnterHub = false;
+            throw new HubConnectionException("Cannot connect. Check if username is valid or internet connection is available");
+        }
+
+        if (canEnterHub) {
+            //sending version and myinfo
+            updateUserInfo();
+
+            //getting hub name
+            if (config.isDebugOn())
+                System.err.println("Getting hub name. Is hub reachable = "+hubConnection.isOtherPartyReachable());
+            String response = hubComm.getHubData();
+            if (config.isDebugOn())
+                System.err.println("The hub name request was responded with "+response);
+            hubName = NMDCUtil.getHubName(response);
+
+            //scheduling a task to poll for broadcasts
+            if (config.isDebugOn())
+                System.err.println("scheduling broadcast poll system");
+            ScheduledExecutorService broadcastSrvice = Executors.newSingleThreadScheduledExecutor();
+            broadcastSrvice.scheduleAtFixedRate( new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String broadcastVal = hubComm.getBroadcastData();
+                        if (broadcastVal!=null) {
+                            onReceive(broadcastVal);
+                        }
+                    } catch(Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, 0, 50, TimeUnit.MILLISECONDS);
+        }
+    }
+
+    private void exchangeLock() throws IOException{
         if (config.isDebugOn())
             System.err.println("Attempting to get lock from the hub.");
 
@@ -53,6 +114,20 @@ public class NMDC extends DCProtocol implements DCBroadcastReceiver{
         if (config.isDebugOn())
             System.err.println("received lock. value is "+lockValue);
 
+        sendSupportedFeatures();
+
+        //sending key to hub
+        if (lockValue != null) {
+            if (config.isDebugOn())
+                System.err.println("Sending key to hub...");
+            String key = NMDCUtil.getKeyFromLock(lockValue);
+            hubComm.sendDataToHub("$Key "+key+"|");
+            if (config.isDebugOn())
+                System.err.println("value of key is "+key);
+        }
+    }
+
+    private void sendSupportedFeatures() throws IOException {
         List<String> supportedFeatures = config.getSupportedFeatures();
         if (supportedFeatures!=null && !supportedFeatures.isEmpty()) {
             //building $Supports string
@@ -69,22 +144,17 @@ public class NMDC extends DCProtocol implements DCBroadcastReceiver{
         } else if (config.isDebugOn()) {
             System.err.println("No supported features detected.");
         }
+    }
 
-        //sending key to hub
-        if (lockValue != null) {
-            if (config.isDebugOn())
-                System.err.println("Sending key to hub...");
-            String key = NMDCUtil.getKeyFromLock(lockValue);
-            hubComm.sendDataToHub("$Key "+key+"|");
-            if (config.isDebugOn())
-                System.err.println("value of key is "+key);
-        }
-
+    private ValidateNickResponse validateNick() throws IOException, PasswordException {
         if (config.isDebugOn())
             System.err.println("Requesting validation of username "+getUsername());
         //sending client's nick
         hubComm.sendDataToHub("$ValidateNick "+getUsername()+"|");
-        String response;
+
+        String response = "";
+        boolean nickIsRegistered = false;
+        boolean isNickValid = false;
 
         try {
             response = hubComm.getHubData(30);
@@ -92,56 +162,45 @@ public class NMDC extends DCProtocol implements DCBroadcastReceiver{
                 System.err.println("Hub responded with "+response);
 
             if (response.startsWith("$GetPass")) {
-
                 //sending pass if neccessary
                 //if hub requires password
+                nickIsRegistered = true;
                 String password = getPassword();
                 if (password.isEmpty()) {
                     throw new exceptions.PasswordException("Password not provided, however, it is required by hub.");
                 } else {
                     hubComm.sendDataToHub("$MyPass "+password+"|");
+                    response = hubComm.getHubData(30);
+                    if (response.startsWith("$BadPass")) {
+                        isNickValid = false;
+                        nickIsRegistered = true;
+                    }
                 }
-            } else if (config.isDebugOn()) {
-                System.err.println("Hub responded with "+response+", instead of $GetPass");
+            }
+            if (response.startsWith("$Hello")) {
+                isNickValid = true;
+            } else {
+                nickIsRegistered = false;
+                isNickValid = false;
             }
         } catch (TimeoutException e) {
             if (config.isDebugOn()) {
                 System.err.println("Hub did not respond to validate nick request" );
-                //e.printStackTrace();
             }
+            nickIsRegistered = false;
+            isNickValid = true; //TODO this is tmp
         }
 
+        return new ValidateNickResponse(isNickValid, nickIsRegistered, response);
+    }
 
-        //checking connection status
-        response = hubComm.getHubData();
-        if (!response.equals("$LogedIn")) {
-            throw new HubConnectionException("Cannot log into hub.");
-        }
 
-        //sending version and myinfo
-        hubComm.sendDataToHub("$Version 1.0|");
-        hubComm.sendDataToHub("$MyINFO $ALL "+getUsername()+" <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31$test@test.com$1234$|");
-        //TODO: most of the information being sent to the hub is not set anywhere. that should be fixed. a settings/configuration
-        //page should be responsible for setting/creating this information. It shouldn't be static.
-
-        //getting hub name
-        response = hubComm.getHubData();
-        hubName = NMDCUtil.getHubName(response);
-
-        ScheduledExecutorService broadcastSrvice = Executors.newSingleThreadScheduledExecutor();
-        broadcastSrvice.scheduleAtFixedRate( new Runnable() {
-                @Override
-                public void run() {
-                        try {
-                                String broadcastVal = hubComm.getBroadcastData();
-                                if (broadcastVal!=null){
-                                        onReceive(broadcastVal);
-                                }
-                        } catch(Exception e) {
-                                e.printStackTrace();
-                        }
-                }
-        }, 0, 50, TimeUnit.MILLISECONDS);
+    public void updateUserInfo() throws IOException {
+        if (config.isDebugOn())
+            System.err.println("Updating user info. "+"$MyINFO $ALL "+getUsername()+" "+config.getDescription()+"$ <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31$"+config.getEmail()+"$1234$|");
+        //hubCommunicator.sendDataToHub("$Version 1.0|");
+        hubComm.sendDataToHub("$MyINFO $ALL "+getUsername()+" "+config.getDescription()+"$ <++ V:0.673,M:P,H:0/1/0,S:2>$ $LAN(T3)0x31$"+config.getEmail()+"$1234$|");
+        //TODO: most of the information being sent to the hub is not set anywhere. that should be fixed. a settings/configuration already exists. move it
     }
 
     public Collection<String> requestConnectedUsersNicks() throws Exception {

@@ -29,7 +29,7 @@ public abstract class DCProtocol implements DCBroadcaster {
     private String address;
     private int port;
 
-    public DCProtocol(){} //TODO: find out why this has to exit for Guice
+    public DCProtocol(){} //do not remove, guice needs it
 
     public DCProtocol(IConfiguration config) {
         this.config = config;
@@ -54,15 +54,15 @@ public abstract class DCProtocol implements DCBroadcaster {
             return password;
     }
     public void broadcast(String broadcastMessage){
-            Iterator<DCBroadcastReceiver> it = dCBroadcasterSubscribers.iterator();
-            while(it.hasNext()){
-                    DCBroadcastReceiver subscriber = it.next();
-                    if (subscriber==null) {
-                            it.remove();
-                    } else {
-                            subscriber.onReceive(broadcastMessage);
-                    }
+        Iterator<DCBroadcastReceiver> it = dCBroadcasterSubscribers.iterator();
+        while(it.hasNext()) {
+            DCBroadcastReceiver subscriber = it.next();
+            if (subscriber==null) {
+                it.remove();
+            } else {
+                subscriber.onReceive(broadcastMessage);
             }
+        }
     }
     public void register(DCBroadcastReceiver someBroadcastReceiver){
             dCBroadcasterSubscribers.add(someBroadcastReceiver);

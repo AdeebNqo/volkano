@@ -24,9 +24,8 @@ public class NMDCHubCommunicator extends NMDCCommunicator implements HubCommunic
                 public void run() {
                     try {
                         String data = getData(getConnection().getInputStream());
-                        //System.err.println("data is "+data);
                         if (!data.isEmpty()) {
-                                System.err.println("hub comm, data: "+data);
+                                //System.err.println("hub comm, data: "+data);
                                 //TODO: decide whether to insert into hubdata or broadcast data
 
                                 if (data.startsWith("<")) {
@@ -43,12 +42,13 @@ public class NMDCHubCommunicator extends NMDCCommunicator implements HubCommunic
     }
 
     public String getHubData() {
-            //hubdata consumer
-            String data = hubData.poll();
-            while(data==null) {
-                    data = hubData.poll();
-            }
-            return data;
+        //hubdata consumer
+        String data = hubData.poll();
+        while(data==null) {
+                data = hubData.poll();
+        }
+        System.err.println("hub says "+data);
+        return data;
     }
 
     @Override

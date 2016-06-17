@@ -6,7 +6,9 @@ import com.google.inject.Inject;
 
 import interfaces.DCBroadcastReceiver;
 
-public class Controller{
+import java.util.Collection;
+
+public class Controller {
 
     DCProtocol dcprotocol;
     IConfiguration config;
@@ -18,13 +20,14 @@ public class Controller{
     }
     public void loop() {
         try {
-                if (config.isDebugOn())
-                    System.err.println("Connecting to Hub...");
-                dcprotocol.connect();
-                if (config.isDebugOn())
-                    System.err.println("Connected!");
+            if (config.isDebugOn())
+                System.err.println("Connecting to Hub...");
+            dcprotocol.connect();
+            Collection<String> users = dcprotocol.requestConnectedUsersNicks();
+            if (config.isDebugOn())
+                System.err.println("Connected. There are "+users.size()+" users online.");
         } catch(Exception e) {
-                e.printStackTrace();
+            e.printStackTrace();
         }
 
         //TODO this shoudn't exist
