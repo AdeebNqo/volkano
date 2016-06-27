@@ -1,98 +1,72 @@
 package protocol.dc.nmdc;
 
-import java.io.IOException;
 import protocol.dc.Util;
 
-public class NMDCUtil extends Util{
-        public static String getHubName(String hubResponse){
-                String[] items = hubResponse.split("\\s+");
-                String response = "";
-                for (int i=1; i<items.length; ++i){
-                        response += items[i];
-                }
-                return response;
+public class NMDCUtil extends Util {
+
+    public static String identifyLock(String lockResponse) {
+        String[] items = lockResponse.split("\\s+");
+        String response = "";
+        for (int i=1; i<items.length; ++i){
+                response += items[i];
+        }
+        return response;
+    }
+
+
+    /**
+     * The following code is taken
+     * from http://wiki.gusari.org/index.php?title=LockToKey()#Java
+     * Contributed by dCoy
+     */
+    public static String generateKey(String lockString){
+        int i = 0;
+        byte[] lock = null;
+        byte[] key = null;
+
+        lockString = lockString.substring(0,lockString.indexOf(' '));
+        lockString.trim();
+        lock = lockString.getBytes();
+        key = new byte[lock.length];
+
+        for(i=1;i<lock.length;i++){
+            key[i] = (byte)((lock[i] ^ lock[i-1]) & 0xFF);
         }
 
-        public static String identifyLock(String lockResponse){
-                String[] items = lockResponse.split("\\s+");
-                String response = "";
-                for (int i=1; i<items.length; ++i){
-                        response += items[i];
-                }
-                return response;
+        key[0] = (byte)((((lock[0] ^ lock[lock.length-1]) ^ lock[lock.length-2]) ^ 5) & 0xFF);
+
+        for(i=0;i<key.length;i++){
+            key[i] = (byte)((((key[i]<<4) & 0xF0) | ((key[i]>>4) & 0x0F)) & 0xFF);
         }
-        public static String getKeyFromLock(String item) throws IOException{
-                String lock = sanitizeKey(item,1);
-                int len = lock.length();
 
-                //computing the key
-                String key  = ""+(char)(lock.charAt(0) ^ lock.charAt(len-1) ^ lock.charAt(len-2) ^ 5);
-                for (int i = 1; i < len; i++){
-                        key += lock.charAt(i) ^ lock.charAt(i-1);
-                }
-                char[] newchars = new char[len];
-                for (int i = 0; i < len; i++){
-                        char x = (char)((key.charAt(i) >> 4) & 0x0F0F0F0F);
-                        char y = (char)((key.charAt(i) & 0x0F0F0F0F) << 4);
-                        newchars[i] = (char)(x | y);
-                }
-                key = sanitizeKey(String.valueOf(newchars),0);
-                return key;
+        return(dcnEncode(new String(key)));
+    }
+
+    public static String dcnEncode(String string){
+        char[] replacements = null;
+        int i = 0;
+        int index = 0;
+
+        replacements = new char[]{0,5,36,96,124,126};
+
+        for(i=0;i<replacements.length;i++){
+            while((index = string.indexOf(replacements[i])) >=0 ){
+                string = string.substring(0,index)
+                        + "/%DCN"+leadz(replacements[i])+"%/"
+                        + string.substring(index+1,string.length());
+            }
         }
-        /*
 
-        Method for cleaning up lock/key
+        return(string);
+    }
 
-        mode indicates how to clean lock/key. 0 for replace chars with odd strings, 1 remove odd string for chars
-        */
-        private static String sanitizeKey(String Key,int mode){
-
-                int len = Key.length();
-                if (len==0){
-                        String sanitizedKey = "";
-                        for (int i=0; i<len; ++i){
-                                int val = Key.charAt(i);
-                                switch(val){
-                                        case 0:{
-                                                sanitizedKey+="/%DCN000%/";
-                                                break;
-                                        }
-                                        case 5:{
-                                                sanitizedKey+="/%DCN005%/";
-                                                break;
-                                        }
-                                        case 36:{
-                                                sanitizedKey+="/%DCN036%/";
-                                                break;
-                                        }
-                                        case 96:{
-                                                sanitizedKey+="/%DCN096%/";
-                                                break;
-                                        }
-                                        case 124:{
-                                                sanitizedKey+="/%DCN124%/";
-                                                break;
-                                        }
-                                        case 126:{
-                                                sanitizedKey+="/%DCN126%/";
-                                                break;
-                                        }
-                                        default:{
-                                                sanitizedKey+=""+Key.charAt(i);
-                                                break;
-                                        }
-                                }
-                        }
-                        return sanitizedKey;
-                }
-                else{
-                        Key=Key.replaceAll("/%DCN000%/",String.valueOf(Character.toChars(0)));
-                        Key=Key.replaceAll("/%DCN005%/",String.valueOf(Character.toChars(5)));
-                        Key=Key.replaceAll("/%DCN036%/",String.valueOf(Character.toChars(36)));
-                        Key=Key.replaceAll("/%DCN096%/",String.valueOf(Character.toChars(96)));
-                        Key=Key.replaceAll("/%DCN124%/",String.valueOf(Character.toChars(124)));
-                        Key=Key.replaceAll("/%DCN126%/",String.valueOf(Character.toChars(126)));
-                        return Key;
-                }
+    private static String leadz(int nr){
+        if(nr < 100 && nr > 10){
+            return("0"+nr);
+        } else if(nr < 10){
+            return("00"+nr);
+        } else{
+            return(""+nr);
         }
+    }
 }

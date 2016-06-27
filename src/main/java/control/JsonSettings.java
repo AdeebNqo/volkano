@@ -8,7 +8,7 @@ import java.io.FileInputStream;
 import java.util.List;
 
 public class JsonSettings implements IConfiguration {
-    private final boolean DEBUG = true;
+    private final boolean DEBUG = false;
 
     final String IP;
     final int port;
